@@ -5,6 +5,7 @@ import { definirUsuarioAtual, configPronta } from "./lib/firebaseApp";
 import { useSharedList } from "./lib/hooks";
 import { criarEmpresasParaTurma, parseListaColada, buscarPorMatricula, buscarPorCodigoTurma, gerarCodigoTurma } from "./lib/rosterImport";
 import { extrairListaDoPDF } from "./lib/rosterPdf";
+import { ModuleContent, MODULES } from "./components/ModuleRouter";
 
 // ============================================================================
 // Componentes pequenos de UI (mesmo espírito visual do index.html da CI)
@@ -188,24 +189,35 @@ function TelaInformarMatricula({ perfil, onSair, onEncontrado }) {
 }
 
 // ============================================================================
-// Workspace do aluno (placeholder — os 11 módulos entram na Etapa 2)
+// Workspace do aluno — navegação pelos 11 módulos + conteúdo real,
+// portado do protótipo em HTML único já aprovado.
 // ============================================================================
 function AlunoWorkspace({ registro, onSair }) {
+  const [moduloAtivo, setModuloAtivo] = useState("m1");
+
   return (
-    <div className="min-h-screen p-6 max-w-3xl mx-auto">
-      <button onClick={onSair} className="flex items-center gap-2 text-sm text-inksoft mb-4"><LogOut size={15} /> Sair</button>
-      <Card>
-        <div className="flex items-center gap-2 text-ledger mb-2"><Building2 size={18} /><span className="text-xs uppercase tracking-wide">Sua empresa</span></div>
-        <h1 className="font-serif text-2xl mb-1">{registro.nomeEmpresa}</h1>
-        <p className="text-sm text-inksoft">Turma: {registro.turmaNome} · Matrícula: {registro.matricula}</p>
-      </Card>
-      <Card>
-        <p className="text-sm text-inksoft">
-          Infraestrutura da Etapa 1 concluída: login Google, matrícula, empresa individual e sincronização entre
-          dispositivos já funcionam. Os 11 módulos de conteúdo (Teoria, simuladores, DRE, DLPA etc.) entram na
-          Etapa 2, portados do protótipo em HTML único.
-        </p>
-      </Card>
+    <div className="min-h-screen grid" style={{ gridTemplateColumns: "260px 1fr" }}>
+      <nav className="bg-white border-r border-paperline p-5 overflow-y-auto">
+        <div className="mb-4">
+          <div className="font-serif text-lg">{registro.nomeEmpresa}</div>
+          <div className="text-xs text-inksoft">{registro.turmaNome}</div>
+        </div>
+        <div className="space-y-1 mb-4">
+          {MODULES.map((m) => (
+            <button key={m.id} onClick={() => setModuloAtivo(m.id)}
+              className={`w-full text-left flex items-baseline gap-2 px-2 py-1.5 text-sm rounded-sm border-l-2 ${
+                moduloAtivo === m.id ? "border-ledger bg-ledgersoft font-semibold text-ledger" : "border-transparent text-ink hover:bg-ledgersoft"
+              }`}>
+              <span className="font-mono text-xs text-debit min-w-[26px]">{m.code}</span>
+              <span>{m.title}</span>
+            </button>
+          ))}
+        </div>
+        <button onClick={onSair} className="flex items-center gap-2 text-sm text-inksoft border-t border-paperline pt-4 w-full"><LogOut size={15} /> Sair</button>
+      </nav>
+      <main className="p-8 max-w-3xl">
+        <ModuleContent moduleId={moduloAtivo} empresaId={registro.empresaId} />
+      </main>
     </div>
   );
 }

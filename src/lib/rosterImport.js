@@ -1,8 +1,15 @@
 // ============================================================================
 // Importação de turma + criação automática de empresa por aluno.
 //
-// Duas formas de importar: PDF (Professor On-line, via src/lib/rosterPdf.js)
-// ou lista colada manualmente — ambas alimentam a mesma função abaixo.
+// O PPFCHH importa a lista via PDF (src/rosterPdf.js), mas o código-fonte
+// desse arquivo não veio no backup (gap conhecido, registrado no LEIA-ME —
+// só existe no repositório GitHub do PPFCHH). Aqui, para a CI, implementamos
+// a importação por LISTA COLADA (uma linha por aluno), que é 100% autônoma
+// e não depende de nenhum arquivo externo.
+//
+// Import por PDF pode ser adicionado depois (ex.: com a biblioteca pdf.js),
+// reaproveitando esta mesma função criarEmpresasParaTurma() como núcleo —
+// só mudaria a forma de extrair {nome, matricula} do arquivo.
 // ============================================================================
 
 export function gerarCodigoTurma() {
@@ -82,7 +89,7 @@ export async function criarEmpresasParaTurma({ turmaId, turmaNome, professorUid,
 }
 
 // Busca a empresa (e a turma) de um aluno a partir da matrícula digitada —
-// usada na tela de login do aluno.
+// usada na tela de login do aluno, mesmo fluxo do PPFCHH (TelaInformarTurma).
 export async function buscarPorMatricula(matricula) {
   const r = await window.storage.get(`matricula_${matricula.trim()}`, true);
   return r ? JSON.parse(r.value) : null;

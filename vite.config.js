@@ -7,5 +7,5 @@ import react from "@vitejs/plugin-react";
 // e o Vite precisa saber disso para gerar os links dos arquivos corretamente.
 export default defineConfig({
   plugins: [react()],
-  base: "/CI-Contabilidade-Intermediaria/",
+  base: "/NOME-DO-REPOSITORIO/",
 });
