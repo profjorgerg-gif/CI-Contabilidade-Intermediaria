@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { LogOut, KeyRound, Building2, Users, GraduationCap, ShieldCheck } from "lucide-react";
+import {
+  LogOut, KeyRound, Building2, Users, GraduationCap, ShieldCheck,
+  LayoutGrid, FileBarChart, Save, History, BookOpen, LifeBuoy, Megaphone, Video, ChevronRight,
+} from "lucide-react";
 import { auth, observarSessao, entrarComGoogle, sair, traduzErroAuth, CODIGO_MESTRE } from "./lib/firebaseAuth";
 import { definirUsuarioAtual, configPronta } from "./lib/firebaseApp";
 import { useSharedList } from "./lib/hooks";
@@ -60,16 +63,35 @@ function TelaConfigPendente() {
 }
 
 // ============================================================================
-// Login
+// Login — visual aprovado (fundo verde-ink escuro, cartão sem branco puro),
+// com escolha de perfil ANTES do login, igual à referência do PPFCHH.
 // ============================================================================
-function TelaLogin() {
+function TelaLogin({ user, onConcluido }) {
+  const [perfilEscolhido, setPerfilEscolhido] = useState("aluno");
+  const [codigoMestre, setCodigoMestre] = useState("");
   const [erro, setErro] = useState("");
   const [entrando, setEntrando] = useState(false);
 
-  const entrar = async () => {
+  const continuar = async () => {
     setErro(""); setEntrando(true);
     try {
-      await entrarComGoogle();
+      let u = user;
+      if (!u) u = await entrarComGoogle();
+      definirUsuarioAtual(u.uid);
+
+      const existente = await window.storage.get(`usuario_${u.uid}`, true).catch(() => null);
+      let perfil;
+      if (existente) {
+        perfil = JSON.parse(existente.value);
+      } else {
+        const ehMestre = perfilEscolhido === "professor" && codigoMestre.trim() === CODIGO_MESTRE;
+        perfil = {
+          uid: u.uid, nome: u.displayName, email: u.email,
+          papel: ehMestre ? "mestre" : perfilEscolhido, criadoEm: Date.now(),
+        };
+        await window.storage.set(`usuario_${u.uid}`, JSON.stringify(perfil), true);
+      }
+      onConcluido(u, perfil);
     } catch (err) {
       setErro(traduzErroAuth(err));
     }
@@ -77,65 +99,64 @@ function TelaLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
-      <Card className="max-w-md w-full text-center">
-        <div className="font-serif text-3xl mb-1">CI</div>
-        <div className="text-xs uppercase tracking-wide text-inksoft mb-6">Contabilidade Intermediária</div>
-        <Botao onClick={entrar} disabled={entrando}>
-          {entrando ? "Entrando…" : "Continuar com Google"}
-        </Botao>
-        {erro && <p className="text-sm text-alert mt-3">{erro}</p>}
-      </Card>
-    </div>
-  );
-}
-
-// ============================================================================
-// Primeiro acesso: a pessoa ainda não tem perfil salvo — escolhe o papel.
-// ============================================================================
-function TelaEscolherPapel({ user, onDefinido }) {
-  const [codigoMestre, setCodigoMestre] = useState("");
-  const [salvando, setSalvando] = useState(false);
-
-  const definirComoProfessor = async () => {
-    setSalvando(true);
-    const ehMestre = codigoMestre.trim() === CODIGO_MESTRE;
-    const perfil = {
-      uid: user.uid, nome: user.displayName, email: user.email,
-      papel: ehMestre ? "mestre" : "professor", criadoEm: Date.now(),
-    };
-    await window.storage.set(`usuario_${user.uid}`, JSON.stringify(perfil), true);
-    onDefinido(perfil);
-    setSalvando(false);
-  };
-
-  const definirComoAluno = async () => {
-    setSalvando(true);
-    const perfil = { uid: user.uid, nome: user.displayName, email: user.email, papel: "aluno", criadoEm: Date.now() };
-    await window.storage.set(`usuario_${user.uid}`, JSON.stringify(perfil), true);
-    onDefinido(perfil);
-    setSalvando(false);
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center p-6">
-      <Card className="max-w-md w-full">
-        <h1 className="font-serif text-2xl mb-1">Olá, {user.displayName}!</h1>
-        <p className="text-sm text-inksoft mb-5">Como você vai usar a plataforma?</p>
-
-        <div className="mb-5">
-          <Campo label="Sou aluno(a)">
-            <Botao onClick={definirComoAluno} disabled={salvando}>Entrar como aluno(a)</Botao>
-          </Campo>
+    <div style={{ background: "#14201F" }} className="min-h-screen flex items-center justify-center p-6">
+      <div className="max-w-lg w-full rounded-lg p-9" style={{ background: "#1A2827" }}>
+        <div className="flex items-center gap-2 mb-2">
+          <GraduationCap size={16} style={{ color: "#C79A56" }} />
+          <span className="text-xs tracking-wide" style={{ color: "#C79A56" }}>CEDUP HERMANN HERING</span>
         </div>
+        <h1 className="font-serif text-3xl mb-2" style={{ color: "#EDEAE0" }}>CI — Contabilidade Intermediária</h1>
+        <p className="text-sm mb-6" style={{ color: "#93A39F" }}>
+          Onze módulos guiados, da teoria ao lançamento, dentro da mesma empresa fictícia — resultado real acumulado a cada etapa.
+        </p>
 
-        <div className="border-t border-paperline pt-4">
-          <Campo label="Sou professor(a) — código de Usuário Mestre (opcional)">
-            <Input value={codigoMestre} onChange={(e) => setCodigoMestre(e.target.value)} placeholder="Deixe em branco se não tiver" />
-          </Campo>
-          <Botao onClick={definirComoProfessor} secondary disabled={salvando}>Entrar como professor(a)</Botao>
+        <div className="rounded-md p-5" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
+          <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "#93A39F" }}>Perfil de acesso</div>
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setPerfilEscolhido("aluno")}
+              className="flex-1 text-sm rounded px-3 py-2"
+              style={perfilEscolhido === "aluno"
+                ? { background: "#C79A56", color: "#2C1E0E", fontWeight: 500 }
+                : { border: "1px solid #33443F", color: "#93A39F" }}
+            >
+              Aluno(a)
+            </button>
+            <button
+              onClick={() => setPerfilEscolhido("professor")}
+              className="flex-1 text-sm rounded px-3 py-2"
+              style={perfilEscolhido === "professor"
+                ? { background: "#C79A56", color: "#2C1E0E", fontWeight: 500 }
+                : { border: "1px solid #33443F", color: "#93A39F" }}
+            >
+              Professor(a)
+            </button>
+          </div>
+
+          {perfilEscolhido === "professor" && (
+            <input
+              value={codigoMestre} onChange={(e) => setCodigoMestre(e.target.value)}
+              placeholder="Código de Usuário Mestre (opcional)"
+              className="w-full text-sm rounded px-3 py-2 mb-4"
+              style={{ background: "#14201F", border: "1px solid #33443F", color: "#EDEAE0" }}
+            />
+          )}
+
+          <p className="text-xs mb-4" style={{ color: "#6E7E7A" }}>
+            Só é usado na primeira vez que esta conta entra no sistema. Depois disso, o perfil só pode ser alterado por um Usuário Mestre, no painel de Usuários.
+          </p>
+
+          <button
+            onClick={continuar} disabled={entrando}
+            className="w-full text-sm rounded px-3 py-2.5 flex items-center justify-center gap-2 disabled:opacity-50"
+            style={{ background: "#2E4643", border: "1px solid #45605B", color: "#EDEAE0" }}
+          >
+            {entrando ? "Entrando…" : "Continuar com Google"}
+          </button>
+          {erro && <p className="text-sm mt-3" style={{ color: "#E08A8A" }}>{erro}</p>}
+          <p className="text-[10px] text-center mt-3" style={{ color: "#6E7E7A" }}>Autenticado via Firebase — somente conta Google.</p>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
@@ -364,38 +385,150 @@ function GestaoTurmasView({ perfil }) {
 }
 
 // ============================================================================
-// Dashboard do professor / Usuário Mestre
+// Placeholder simples para itens ainda não implementados, no visual escuro.
+// ============================================================================
+function EmConstrucao({ titulo }) {
+  return (
+    <div className="rounded-md p-6" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
+      <strong style={{ color: "#EDEAE0" }} className="block mb-1">{titulo}</strong>
+      <p className="text-sm" style={{ color: "#93A39F" }}>Esta área ainda está em construção.</p>
+    </div>
+  );
+}
+
+const ITENS_GESTAO = [
+  { id: "turmas", label: "Turmas", icon: Building2 },
+  { id: "usuarios", label: "Usuários", icon: Users },
+  { id: "relatorios", label: "Relatórios", icon: FileBarChart },
+  { id: "backup", label: "Backup", icon: Save },
+  { id: "auditoria", label: "Auditoria", icon: History },
+];
+const ITENS_MANUAIS = [
+  { id: "manual-professor", label: "Manual do Professor", icon: BookOpen },
+  { id: "manual-aluno", label: "Manual do Aluno", icon: GraduationCap },
+];
+const ITENS_OUTROS = [
+  { id: "suporte", label: "Suporte", icon: LifeBuoy },
+  { id: "novidades", label: "Novidades", icon: Megaphone },
+  { id: "tutoriais", label: "Tutoriais", icon: Video },
+];
+
+function ItemMenu({ ativo, icon: Icon, label, onClick }) {
+  return (
+    <button onClick={onClick}
+      className="w-full flex items-center gap-2.5 text-sm px-3 py-2 rounded-md text-left"
+      style={ativo ? { background: "#2E4643", color: "#EDEAE0" } : { color: "#93A39F" }}>
+      <Icon size={16} style={{ color: ativo ? "#C79A56" : "#6E7E7A" }} />
+      {label}
+    </button>
+  );
+}
+function TituloGrupo({ children }) {
+  return <div className="text-[11px] uppercase tracking-wide px-3 mt-4 mb-1" style={{ color: "#5C6E69" }}>{children}</div>;
+}
+
+// ============================================================================
+// Dashboard do professor / Usuário Mestre — menu lateral completo
 // ============================================================================
 function ProfessorDashboard({ perfil, onSair }) {
-  const [aba, setAba] = useState("turmas");
-  const abas = [
-    { id: "turmas", label: "Turmas", icon: Users },
-    { id: "usuarios", label: "Usuários", icon: GraduationCap },
-  ];
-  return (
-    <div className="min-h-screen p-6 max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <div className="font-serif text-xl">CI — Gestão</div>
-          <div className="text-xs text-inksoft flex items-center gap-1">
-            {perfil.papel === "mestre" && <ShieldCheck size={14} className="text-ledger" />}
-            {perfil.nome} · {perfil.papel === "mestre" ? "Usuário Mestre" : "Professor(a)"}
+  const [turmas] = useSharedList("turmas");
+  const [pagina, setPagina] = useState("inicio");
+
+  const conteudo = () => {
+    if (pagina === "turmas") return <GestaoTurmasView perfil={perfil} />;
+    if (pagina === "usuarios") return <EmConstrucao titulo="Usuários" />;
+    if (pagina === "relatorios") return <EmConstrucao titulo="Relatórios" />;
+    if (pagina === "backup") return <EmConstrucao titulo="Backup" />;
+    if (pagina === "auditoria") return <EmConstrucao titulo="Auditoria" />;
+    if (pagina === "manual-professor") return <EmConstrucao titulo="Manual do Professor" />;
+    if (pagina === "manual-aluno") return <EmConstrucao titulo="Manual do Aluno" />;
+    if (pagina === "suporte") return <EmConstrucao titulo="Suporte" />;
+    if (pagina === "novidades") return <EmConstrucao titulo="Novidades" />;
+    if (pagina === "tutoriais") return <EmConstrucao titulo="Tutoriais" />;
+
+    // Início
+    return (
+      <div>
+        <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "#C79A56" }}>Curso Técnico em Administração e Contabilidade</div>
+        <h1 className="font-serif text-3xl mb-3" style={{ color: "#EDEAE0" }}>Painel do(a) {perfil.papel === "mestre" ? "Usuário Mestre" : "Professor(a)"}</h1>
+        <p className="text-sm mb-6 max-w-2xl" style={{ color: "#93A39F" }}>
+          Bem-vindo(a), {perfil.nome}. Crie turmas, importe alunos e acompanhe a plataforma de cada empresa fictícia — tudo em um só lugar.
+        </p>
+        <div className="flex gap-3 mb-6">
+          <button onClick={() => setPagina("turmas")} className="text-sm rounded px-4 py-2" style={{ background: "#C79A56", color: "#2C1E0E", fontWeight: 500 }}>Ir para Turmas</button>
+          <button onClick={() => setPagina("relatorios")} className="text-sm rounded px-4 py-2" style={{ border: "1px solid #33443F", color: "#EDEAE0" }}>Ver relatórios</button>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="rounded-md p-4" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
+            <div className="text-[11px] uppercase" style={{ color: "#93A39F" }}>Turmas criadas</div>
+            <div className="font-serif text-2xl" style={{ color: "#C79A56" }}>{turmas === null ? "…" : turmas.length}</div>
+          </div>
+          <div className="rounded-md p-4" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
+            <div className="text-[11px] uppercase" style={{ color: "#93A39F" }}>Itens de gestão</div>
+            <div className="font-serif text-2xl" style={{ color: "#C79A56" }}>{ITENS_GESTAO.length} módulos</div>
+          </div>
+          <div className="rounded-md p-4" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
+            <div className="text-[11px] uppercase" style={{ color: "#93A39F" }}>Papel</div>
+            <div className="text-base font-medium" style={{ color: "#EDEAE0" }}>{perfil.papel === "mestre" ? "Usuário Mestre" : "Professor(a)"}</div>
           </div>
         </div>
-        <button onClick={onSair} className="flex items-center gap-2 text-sm text-inksoft"><LogOut size={15} /> Sair</button>
+
+        <div className="rounded-md p-5" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
+          <strong className="flex items-center gap-2 mb-3" style={{ color: "#EDEAE0" }}><LayoutGrid size={16} style={{ color: "#C79A56" }} />Índice de Gestão</strong>
+          <div className="grid grid-cols-2 gap-2">
+            {ITENS_GESTAO.map((item, i) => (
+              <button key={item.id} onClick={() => setPagina(item.id)}
+                className="flex items-center gap-3 text-sm rounded px-3 py-3"
+                style={{ background: "#14201F", border: "1px solid #33443F", color: "#EDEAE0" }}>
+                <span className="text-xs rounded-full w-6 h-6 flex items-center justify-center" style={{ border: "1px solid #C79A56", color: "#C79A56" }}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <item.icon size={15} style={{ color: "#93A39F" }} />
+                <span className="flex-1 text-left">{item.label}</span>
+                <ChevronRight size={15} style={{ color: "#5C6E69" }} />
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="flex gap-2 mb-6">
-        {abas.map((a) => (
-          <button key={a.id} onClick={() => setAba(a.id)}
-            className={`px-4 py-2 text-sm rounded-sm border ${aba === a.id ? "border-ledger bg-ledgersoft text-ledger" : "border-paperline text-inksoft"}`}>
-            {a.label}
+    );
+  };
+
+  return (
+    <div style={{ background: "#14201F" }} className="min-h-screen grid" >
+      <div style={{ display: "grid", gridTemplateColumns: "250px 1fr" }}>
+        <nav className="p-4" style={{ background: "#182524", borderRight: "1px solid #26332F" }}>
+          <div className="flex items-center gap-2 px-3 py-2 mb-1">
+            <GraduationCap size={18} style={{ color: "#C79A56" }} />
+            <div>
+              <div className="text-sm font-medium" style={{ color: "#EDEAE0" }}>Painel do Professor</div>
+              <div className="text-[11px]" style={{ color: "#6E7E7A" }}>{perfil.nome}</div>
+            </div>
+          </div>
+          <ItemMenu ativo={pagina === "inicio"} icon={LayoutGrid} label="Início" onClick={() => setPagina("inicio")} />
+
+          <TituloGrupo>Gestão</TituloGrupo>
+          {ITENS_GESTAO.map((item) => (
+            <ItemMenu key={item.id} ativo={pagina === item.id} icon={item.icon} label={item.label} onClick={() => setPagina(item.id)} />
+          ))}
+
+          <TituloGrupo>Manuais</TituloGrupo>
+          {ITENS_MANUAIS.map((item) => (
+            <ItemMenu key={item.id} ativo={pagina === item.id} icon={item.icon} label={item.label} onClick={() => setPagina(item.id)} />
+          ))}
+
+          <TituloGrupo>Outros</TituloGrupo>
+          {ITENS_OUTROS.map((item) => (
+            <ItemMenu key={item.id} ativo={pagina === item.id} icon={item.icon} label={item.label} onClick={() => setPagina(item.id)} />
+          ))}
+
+          <button onClick={onSair} className="w-full flex items-center gap-2.5 text-sm px-3 py-2 mt-4 rounded-md" style={{ color: "#93A39F", borderTop: "1px solid #26332F" }}>
+            <LogOut size={15} /> Sair
           </button>
-        ))}
+        </nav>
+        <main className="p-8 overflow-y-auto">{conteudo()}</main>
       </div>
-      {aba === "turmas" && <GestaoTurmasView perfil={perfil} />}
-      {aba === "usuarios" && (
-        <Card><p className="text-sm text-inksoft">Relatórios, Backup e Auditoria entram na Etapa 2, junto com os módulos.</p></Card>
-      )}
     </div>
   );
 }
@@ -422,9 +555,15 @@ export default function App() {
 
   if (!configPronta) return <TelaConfigPendente />;
   if (user === undefined) return <p className="p-6 text-sm text-inksoft">Carregando…</p>;
-  if (!user) return <TelaLogin />;
-  if (perfil === undefined) return <p className="p-6 text-sm text-inksoft">Carregando…</p>;
-  if (!perfil) return <TelaEscolherPapel user={user} onDefinido={setPerfil} />;
+  if (user && perfil === undefined) return <p className="p-6 text-sm text-inksoft">Carregando…</p>;
+  if (!user || !perfil) {
+    return (
+      <TelaLogin
+        user={user}
+        onConcluido={(u, p) => { setUser(u); setPerfil(p); }}
+      />
+    );
+  }
 
   if (perfil.papel === "professor" || perfil.papel === "mestre") {
     return <ProfessorDashboard perfil={perfil} onSair={sair} />;
