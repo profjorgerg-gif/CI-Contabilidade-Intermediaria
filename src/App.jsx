@@ -4,6 +4,7 @@ import { auth, observarSessao, entrarComGoogle, sair, traduzErroAuth, CODIGO_MES
 import { definirUsuarioAtual, configPronta } from "./lib/firebaseApp";
 import { useSharedList } from "./lib/hooks";
 import { criarEmpresasParaTurma, parseListaColada, buscarPorMatricula, buscarPorCodigoTurma, gerarCodigoTurma } from "./lib/rosterImport";
+import { extrairListaDoPDF } from "./lib/rosterPdf";
 
 // ============================================================================
 // Componentes pequenos de UI (mesmo espírito visual do index.html da CI)
@@ -219,6 +220,9 @@ function GestaoTurmasView({ perfil }) {
   const [turmaSelecionada, setTurmaSelecionada] = useState(null);
   const [resultado, setResultado] = useState(null);
   const [processando, setProcessando] = useState(false);
+  const [modoImportacao, setModoImportacao] = useState("pdf"); // "pdf" | "colar"
+  const [erroPdf, setErroPdf] = useState("");
+  const [nomePdfCarregado, setNomePdfCarregado] = useState("");
 
   if (turmas === null) return <p className="text-sm text-inksoft">Carregando…</p>;
 
@@ -228,6 +232,20 @@ function GestaoTurmasView({ perfil }) {
     await setTurmas([...(turmas || []), nova]);
     setNomeTurma("");
     setTurmaSelecionada(nova);
+  };
+
+  const processarPdf = async (file) => {
+    setErroPdf(""); setProcessando(true); setNomePdfCarregado(file.name);
+    try {
+      const { turmaNomeSugerido, alunos } = await extrairListaDoPDF(file);
+      setListaColada(alunos.map((a) => `${a.nome}, ${a.matricula}`).join("\n"));
+      if (turmaNomeSugerido && !nomeTurma.trim() && !turmaSelecionada) {
+        setNomeTurma(turmaNomeSugerido);
+      }
+    } catch (err) {
+      setErroPdf(err.message || "Não foi possível ler este PDF.");
+    }
+    setProcessando(false);
   };
 
   const importar = async () => {
@@ -250,6 +268,7 @@ function GestaoTurmasView({ perfil }) {
           <Input value={nomeTurma} onChange={(e) => setNomeTurma(e.target.value)} placeholder="Nome da turma (ex.: 3º Contabilidade A)" />
           <Botao onClick={criarTurma}>Criar</Botao>
         </div>
+        <p className="text-xs text-inksoft mt-2">Dica: se você carregar um PDF antes de criar a turma, o nome sugerido aparece aqui automaticamente.</p>
       </Card>
 
       <Card>
@@ -267,11 +286,39 @@ function GestaoTurmasView({ perfil }) {
 
       {turmaSelecionada && (
         <Card>
-          <h2 className="font-serif text-xl mb-2">Importar alunos — {turmaSelecionada.nome}</h2>
-          <p className="text-xs text-inksoft mb-3">
-            Cole uma linha por aluno: <code className="bg-ledgersoft px-1">Nome completo, matrícula</code>.
-            Uma empresa "Nome Completo LTDA" é criada automaticamente para cada um.
+          <h2 className="font-serif text-xl mb-1">Importar alunos — {turmaSelecionada.nome}</h2>
+          <p className="text-xs text-inksoft mb-4">
+            A <strong>matrícula é a chave que prevalece</strong>: se um aluno já foi importado antes (mesma
+            matrícula), a empresa dele é reaproveitada — nada se perde, só o nome é atualizado se tiver mudado.
           </p>
+
+          <div className="flex gap-2 mb-4">
+            <button onClick={() => setModoImportacao("pdf")} className={`px-3 py-1.5 text-sm rounded-sm border ${modoImportacao === "pdf" ? "border-ledger bg-ledgersoft text-ledger" : "border-paperline text-inksoft"}`}>Carregar PDF</button>
+            <button onClick={() => setModoImportacao("colar")} className={`px-3 py-1.5 text-sm rounded-sm border ${modoImportacao === "colar" ? "border-ledger bg-ledgersoft text-ledger" : "border-paperline text-inksoft"}`}>Colar lista</button>
+          </div>
+
+          {modoImportacao === "pdf" && (
+            <div className="mb-4">
+              <p className="text-xs text-inksoft mb-2">
+                Aceita o PDF "Estudantes da Turma" exportado do Professor On-line (SED-SC). Depois de carregado, a
+                lista aparece abaixo para você conferir antes de importar.
+              </p>
+              <input
+                type="file" accept="application/pdf"
+                onChange={(e) => e.target.files[0] && processarPdf(e.target.files[0])}
+                className="text-sm"
+              />
+              {nomePdfCarregado && !erroPdf && <p className="text-xs text-ledger mt-2">Arquivo lido: {nomePdfCarregado}</p>}
+              {erroPdf && <p className="text-sm text-alert mt-2">{erroPdf}</p>}
+            </div>
+          )}
+
+          {modoImportacao === "colar" && (
+            <p className="text-xs text-inksoft mb-2">
+              Cole uma linha por aluno: <code className="bg-ledgersoft px-1">Nome completo, matrícula</code>.
+            </p>
+          )}
+
           <textarea
             value={listaColada}
             onChange={(e) => setListaColada(e.target.value)}
@@ -285,7 +332,7 @@ function GestaoTurmasView({ perfil }) {
           {resultado && (
             <div className="mt-4 border-t border-paperline pt-4">
               <p className="text-sm mb-2">
-                <strong>{resultado.empresas.length}</strong> empresa(s) criada(s). Código alternativo da turma:{" "}
+                <strong>{resultado.empresas.length}</strong> empresa(s) processada(s). Código alternativo da turma:{" "}
                 <code className="bg-ledgersoft px-2 py-0.5">{resultado.codigo}</code>
               </p>
               <table className="w-full text-sm">
