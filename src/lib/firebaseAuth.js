@@ -1,0 +1,47 @@
+// ============================================================================
+// Autenticação (Firebase Authentication) — login somente com conta Google.
+// Adaptado do projeto PPFCHH (mesmo padrão), com um código de Mestre PRÓPRIO
+// da CI — troque o valor abaixo antes de publicar o link da plataforma.
+//
+// IMPORTANTE — o repositório da CI é público no GitHub: qualquer pessoa que
+// abrir o código-fonte vê o valor abaixo. Trate-o como uma trava simples
+// contra acidentes (evita que alguém vire Mestre sem querer), não como um
+// segredo forte.
+// ============================================================================
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+} from "firebase/auth";
+import { app } from "./firebaseApp";
+
+export const CODIGO_MESTRE = "326251@_@prof";
+export const auth = app ? getAuth(app) : null;
+
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" });
+
+export function observarSessao(callback) {
+  if (!auth) return () => {};
+  return onAuthStateChanged(auth, callback);
+}
+
+export async function entrarComGoogle() {
+  const cred = await signInWithPopup(auth, googleProvider);
+  return cred.user;
+}
+
+export async function sair() {
+  await signOut(auth);
+}
+
+export function traduzErroAuth(err) {
+  const c = err?.code || "";
+  const map = {
+    "auth/popup-closed-by-user": "A janela do Google foi fechada antes de concluir. Tente novamente.",
+    "auth/cancelled-popup-request": "Só é possível ter uma janela de login por vez. Tente novamente.",
+    "auth/popup-blocked": "O navegador bloqueou a janela do Google. Permita pop-ups para este site e tente de novo.",
+    "auth/account-exists-with-different-credential": "Este e-mail já está associado a outra forma de login.",
+    "auth/network-request-failed": "Falha de conexão. Verifique a internet e tente novamente.",
+    "auth/too-many-requests": "Muitas tentativas seguidas. Aguarde um pouco e tente novamente.",
+  };
+  return map[c] || "Não foi possível entrar com o Google. Tente novamente.";
+}
