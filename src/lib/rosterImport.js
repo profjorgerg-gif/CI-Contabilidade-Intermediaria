@@ -1,15 +1,8 @@
 // ============================================================================
 // Importação de turma + criação automática de empresa por aluno.
 //
-// O PPFCHH importa a lista via PDF (src/rosterPdf.js), mas o código-fonte
-// desse arquivo não veio no backup (gap conhecido, registrado no LEIA-ME —
-// só existe no repositório GitHub do PPFCHH). Aqui, para a CI, implementamos
-// a importação por LISTA COLADA (uma linha por aluno), que é 100% autônoma
-// e não depende de nenhum arquivo externo.
-//
-// Import por PDF pode ser adicionado depois (ex.: com a biblioteca pdf.js),
-// reaproveitando esta mesma função criarEmpresasParaTurma() como núcleo —
-// só mudaria a forma de extrair {nome, matricula} do arquivo.
+// Duas formas de importar: PDF (Professor On-line, via src/lib/rosterPdf.js)
+// ou lista colada manualmente — ambas alimentam a mesma função abaixo.
 // ============================================================================
 
 export function gerarCodigoTurma() {
@@ -44,20 +37,32 @@ export function nomeEmpresaParaAluno(nomeAluno) {
 }
 
 // Cria (ou atualiza) uma turma, gera uma empresa fictícia por aluno, e grava
-// os registros de busca por matrícula e por código de turma — tudo em uma
-// única função, para ficar simples de chamar da tela de Gestão > Turmas.
+// os registros de busca por matrícula e por código de turma.
+//
+// A MATRÍCULA É A CHAVE QUE PREVALECE: se um aluno já foi importado antes
+// (mesma matrícula), a empresa existente dele é REAPROVEITADA — só o nome é
+// atualizado, se tiver mudado. Isso evita que reimportar um PDF atualizado
+// crie uma empresa duplicada e "perca" os lançamentos que o aluno já fez.
 export async function criarEmpresasParaTurma({ turmaId, turmaNome, professorUid, professorNome, alunos }) {
   const empresas = [];
   for (const aluno of alunos) {
-    const empresaId = gerarIdEmpresa();
+    const existente = await buscarPorMatricula(aluno.matricula);
+    const empresaId = existente ? existente.empresaId : gerarIdEmpresa();
+
     const empresa = {
       id: empresaId,
       nome: nomeEmpresaParaAluno(aluno.nome),
       aluno: aluno.nome,
       matricula: aluno.matricula,
       turmaId,
-      criadaEm: Date.now(),
+      criadaEm: existente ? undefined : Date.now(),
+      reimportadaEm: existente ? Date.now() : undefined,
     };
+    // Preserva a data de criação original se a empresa já existia.
+    if (existente) {
+      const antiga = await window.storage.get(`empresa_${empresaId}`, true);
+      if (antiga) empresa.criadaEm = JSON.parse(antiga.value).criadaEm;
+    }
     empresas.push(empresa);
 
     await window.storage.set(`empresa_${empresaId}`, JSON.stringify(empresa), true);
@@ -77,7 +82,7 @@ export async function criarEmpresasParaTurma({ turmaId, turmaNome, professorUid,
 }
 
 // Busca a empresa (e a turma) de um aluno a partir da matrícula digitada —
-// usada na tela de login do aluno, mesmo fluxo do PPFCHH (TelaInformarTurma).
+// usada na tela de login do aluno.
 export async function buscarPorMatricula(matricula) {
   const r = await window.storage.get(`matricula_${matricula.trim()}`, true);
   return r ? JSON.parse(r.value) : null;
