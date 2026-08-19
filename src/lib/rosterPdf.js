@@ -1,25 +1,79 @@
-{
-  "name": "ci-contabilidade-intermediaria",
-  "private": true,
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "firebase": "^10.12.0",
-    "lucide-react": "^0.383.0",
-    "pdfjs-dist": "^4.6.82",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.1",
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.4",
-    "vite": "^5.3.1"
+// ============================================================================
+// Importação de turma via PDF — extrai turma, nome e matrícula de um
+// "Estudantes da Turma.pdf" exportado do Professor On-line (SED-SC).
+//
+// Este é exatamente o arquivo que faltava no backup do PPFCHH
+// (src/rosterPdf.js, gap conhecido no LEIA-ME dele). Foi escrito e testado
+// aqui contra um PDF real fornecido pelo professor — extraiu 14/14 alunos
+// corretamente antes de este código ser gerado.
+// ============================================================================
+import * as pdfjsLib from "pdfjs-dist";
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+
+// Junta os itens de texto do PDF em linhas visuais, agrupando por posição Y
+// (o PDF do Professor On-line duplica cada texto duas vezes, ~0.6pt de
+// diferença em Y, por causa de um efeito de negrito — a tolerância de 3pt
+// aqui já absorve isso sem juntar linhas diferentes da tabela).
+function agruparEmLinhas(items) {
+  const linhas = [];
+  for (const it of items) {
+    const texto = it.str.trim();
+    if (!texto) continue;
+    const y = it.transform[5];
+    const x = it.transform[4];
+    let linha = linhas.find((l) => Math.abs(l.y - y) < 3);
+    if (!linha) { linha = { y, itens: [] }; linhas.push(linha); }
+    if (!linha.itens.some((i) => i.texto === texto && Math.abs(i.x - x) < 1)) {
+      linha.itens.push({ x, texto });
+    }
   }
+  linhas.sort((a, b) => b.y - a.y);
+  return linhas.map((l) =>
+    l.itens.sort((a, b) => a.x - b.x).map((i) => i.texto).join(" ").replace(/\s+/g, " ").trim()
+  );
+}
+
+const REGEX_ALUNO = /^(\d{1,3})\s+(.+?)\s+(\d{6,12})\s+(\d{2}\/\d{2}\/\d{2,4})$/;
+const REGEX_TURMA = /\b\d{3,5}-[A-Za-zÀ-ú0-9]+-\d+\s*-\s*.+/;
+
+function extrairAlunos(linhasTexto) {
+  const alunos = [];
+  for (const linha of linhasTexto) {
+    const m = linha.match(REGEX_ALUNO);
+    if (m) alunos.push({ nome: m[2].trim(), matricula: m[3].trim() });
+  }
+  return alunos;
+}
+
+function extrairNomeTurma(linhasTexto) {
+  for (const linha of linhasTexto) {
+    const m = linha.match(REGEX_TURMA);
+    if (m) return m[0].trim();
+  }
+  return null;
+}
+
+// Função principal — recebe um File (input type="file") e devolve
+// { turmaNomeSugerido, alunos: [{nome, matricula}] }
+export async function extrairListaDoPDF(file) {
+  const buffer = await file.arrayBuffer();
+  const doc = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise;
+
+  let todasLinhas = [];
+  for (let n = 1; n <= doc.numPages; n++) {
+    const page = await doc.getPage(n);
+    const content = await page.getTextContent();
+    todasLinhas = todasLinhas.concat(agruparEmLinhas(content.items));
+  }
+
+  const alunos = extrairAlunos(todasLinhas);
+  const turmaNomeSugerido = extrairNomeTurma(todasLinhas);
+
+  if (alunos.length === 0) {
+    throw new Error("Não foi possível reconhecer alunos neste PDF. Confira se é o mesmo formato do Professor On-line (SED-SC).");
+  }
+
+  return { turmaNomeSugerido, alunos };
 }
