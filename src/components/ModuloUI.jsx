@@ -9,7 +9,7 @@ export function Card({ children, className = "" }) {
 // protótipo vanilla). dangerouslySetInnerHTML é seguro aqui porque o
 // conteúdo vem de constantes do próprio código-fonte, não de input externo.
 export function TeoriaCard({ html }) {
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div className="teoria-conteudo" dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 export function Botao({ children, onClick, secondary, disabled, className = "" }) {
@@ -169,7 +169,7 @@ export function EstudoDeCaso({ empresaId, moduleId, html }) {
 
   return (
     <Card>
-      <div dangerouslySetInnerHTML={{ __html: html }} />
+      <div className="teoria-conteudo" dangerouslySetInnerHTML={{ __html: html }} />
       {carregado && (
         <>
           <textarea

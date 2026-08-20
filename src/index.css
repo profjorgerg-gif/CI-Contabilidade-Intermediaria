@@ -6,3 +6,63 @@ body {
   background: #F7F5EF;
   color: #1C2B2D;
 }
+
+/* ============================================================
+   Estilos para o conteúdo de Teoria extraído do protótipo
+   original (renderizado via dangerouslySetInnerHTML). Essas
+   classes (.card, .mgmt, .action, etc.) vêm de dentro do HTML
+   já pronto de cada módulo e precisam existir aqui, já que o
+   Tailwind não gera CSS para classes que não estão em JSX.
+   ============================================================ */
+.teoria-conteudo .card {
+  background: #FFFFFF;
+  border: 1px solid #DCD6C6;
+  border-radius: 2px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+}
+.teoria-conteudo strong { color: #1C2B2D; }
+.teoria-conteudo table.mgmt {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.teoria-conteudo table.mgmt th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #5B6B6C;
+  border-bottom: 1px solid #DCD6C6;
+  padding: 8px 10px;
+}
+.teoria-conteudo table.mgmt td {
+  padding: 9px 10px;
+  border-bottom: 1px solid #EEEBE0;
+}
+.teoria-conteudo .profile-note {
+  font-size: 12px;
+  color: #5B6B6C;
+  background: #E7EEE9;
+  border-left: 3px solid #28513F;
+  padding: 8px 12px;
+  margin-bottom: 22px;
+}
+.teoria-conteudo .empty-state {
+  border: 1px dashed #DCD6C6;
+  border-radius: 2px;
+  padding: 20px;
+  background: #FFFFFF;
+  color: #5B6B6C;
+}
+.teoria-conteudo .action {
+  display: inline-block;
+  background: #28513F;
+  color: #fff;
+  border-radius: 2px;
+  padding: 9px 16px;
+  font-size: 13.5px;
+}
+.teoria-conteudo p { margin: 0 0 10px; }
+.teoria-conteudo ol, .teoria-conteudo ul { padding-left: 18px; color: #5B6B6C; font-size: 13.5px; }
+

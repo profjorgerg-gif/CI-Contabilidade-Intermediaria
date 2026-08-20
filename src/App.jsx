@@ -52,19 +52,47 @@ function Input(props) {
 // preenchido com as credenciais reais do projeto Firebase.
 // ============================================================================
 // ============================================================================
-// Sair com opção de backup — pergunta antes de encerrar a sessão.
+// Modal de confirmação ao sair — substitui o window.confirm() nativo (fácil
+// de clicar sem perceber) por uma escolha explícita dentro do próprio app.
 // ============================================================================
-async function sairComBackup() {
-  const querBackup = window.confirm("Deseja realizar o backup dos dados antes de sair?");
-  if (querBackup) {
+function ModalConfirmarSaida({ onFecharSemSair, onSairSemBackup, onSairComBackup }) {
+  const [gerando, setGerando] = useState(false);
+  const [erro, setErro] = useState("");
+
+  const confirmarComBackup = async () => {
+    setGerando(true); setErro("");
     try {
-      const nome = await gerarBackupZip();
-      window.alert(`Backup gerado: ${nome}`);
-    } catch (err) {
-      window.alert("Não foi possível gerar o backup agora. Você pode tentar novamente pelo menu Backup.");
+      await gerarBackupZip();
+      onSairComBackup();
+    } catch {
+      setErro("Não foi possível gerar o backup. Você pode sair sem backup ou tentar de novo.");
+      setGerando(false);
     }
-  }
-  await sair();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: "rgba(20,32,31,0.6)" }}>
+      <div className="max-w-sm w-full rounded-md p-6" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
+        <strong style={{ color: "#EDEAE0" }} className="block mb-2">Sair do sistema</strong>
+        <p className="text-sm mb-5" style={{ color: "#93A39F" }}>Deseja realizar o backup dos dados antes de sair?</p>
+        {erro && <p className="text-xs mb-3" style={{ color: "#E08A8A" }}>{erro}</p>}
+        <div className="flex flex-col gap-2">
+          <button onClick={confirmarComBackup} disabled={gerando}
+            className="text-sm rounded px-4 py-2.5 disabled:opacity-50" style={{ background: "#C79A56", color: "#2C1E0E", fontWeight: 500 }}>
+            {gerando ? "Gerando backup…" : "Sim, gerar backup e sair"}
+          </button>
+          <button onClick={onSairSemBackup} disabled={gerando}
+            className="text-sm rounded px-4 py-2.5" style={{ border: "1px solid #33443F", color: "#EDEAE0" }}>
+            Não, só sair
+          </button>
+          <button onClick={onFecharSemSair} disabled={gerando}
+            className="text-xs mt-1" style={{ color: "#6E7E7A" }}>
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function TelaConfigPendente() {
@@ -701,6 +729,7 @@ export default function App() {
   const [user, setUser] = useState(undefined);
   const [perfil, setPerfil] = useState(undefined);
   const [registroAluno, setRegistroAluno] = useState(null);
+  const [pedindoSaida, setPedindoSaida] = useState(false);
 
   useEffect(() => {
     if (!configPronta) return;
@@ -713,6 +742,17 @@ export default function App() {
     });
     return unsub;
   }, []);
+
+  const pedirSaida = () => setPedindoSaida(true);
+  const executarSaida = async () => { setPedindoSaida(false); await sair(); };
+
+  const modalSaida = pedindoSaida && (
+    <ModalConfirmarSaida
+      onFecharSemSair={() => setPedindoSaida(false)}
+      onSairSemBackup={executarSaida}
+      onSairComBackup={executarSaida}
+    />
+  );
 
   if (!configPronta) return <TelaConfigPendente />;
   if (user === undefined) return <p className="p-6 text-sm text-inksoft">Carregando…</p>;
@@ -727,22 +767,29 @@ export default function App() {
   }
 
   if (perfil.papel === "professor" || perfil.papel === "mestre") {
-    return <ProfessorDashboard perfil={perfil} onSair={sairComBackup} />;
+    return <>
+      <ProfessorDashboard perfil={perfil} onSair={pedirSaida} />
+      {modalSaida}
+    </>;
   }
 
   // Aluno
   if (!registroAluno) {
-    return (
+    return <>
       <TelaInformarMatricula
         perfil={perfil}
-        onSair={sairComBackup}
+        onSair={pedirSaida}
         onEncontrado={async (r) => {
           const empresaSnap = await window.storage.get(`empresa_${r.empresaId}`, true);
           const empresa = empresaSnap ? JSON.parse(empresaSnap.value) : null;
           setRegistroAluno({ ...r, nomeEmpresa: empresa?.nome || "(empresa não encontrada)" });
         }}
       />
-    );
+      {modalSaida}
+    </>;
   }
-  return <AlunoWorkspace registro={registroAluno} perfil={perfil} onSair={sairComBackup} />;
+  return <>
+    <AlunoWorkspace registro={registroAluno} perfil={perfil} onSair={pedirSaida} />
+    {modalSaida}
+  </>;
 }
