@@ -6,7 +6,7 @@ import {
 import { auth, observarSessao, entrarComGoogle, sair, traduzErroAuth, CODIGO_MESTRE } from "./lib/firebaseAuth";
 import { definirUsuarioAtual, configPronta } from "./lib/firebaseApp";
 import { useSharedList } from "./lib/hooks";
-import { criarEmpresasParaTurma, parseListaColada, buscarPorMatricula, buscarPorCodigoTurma, gerarCodigoTurma } from "./lib/rosterImport";
+import { criarEmpresasParaTurma, parseListaColada, buscarPorMatricula, buscarPorCodigoTurma, gerarCodigoTurma, adicionarAlunoATurma, removerAlunoDaTurma } from "./lib/rosterImport";
 import { extrairListaDoPDF } from "./lib/rosterPdf";
 import { ModuleContent, MODULES } from "./components/ModuleRouter";
 import { Suporte } from "./components/Suporte";
@@ -297,6 +297,10 @@ function GestaoTurmasView({ perfil }) {
   const [nomePdfCarregado, setNomePdfCarregado] = useState("");
   const [alunosDaTurma, setAlunosDaTurma] = useState(null);
   const [buscaAluno, setBuscaAluno] = useState("");
+  const [novoNome, setNovoNome] = useState("");
+  const [novaMatricula, setNovaMatricula] = useState("");
+  const [salvandoAluno, setSalvandoAluno] = useState(false);
+  const [erroAluno, setErroAluno] = useState("");
 
   const carregarAlunos = async (turmaId) => {
     setAlunosDaTurma(null);
@@ -305,8 +309,32 @@ function GestaoTurmasView({ perfil }) {
   };
 
   const selecionarTurma = (t) => {
-    setTurmaSelecionada(t); setResultado(null); setBuscaAluno("");
+    setTurmaSelecionada(t); setResultado(null); setBuscaAluno(""); setErroAluno("");
     carregarAlunos(t.id);
+  };
+
+  const adicionarUmAluno = async () => {
+    setErroAluno("");
+    if (!novoNome.trim() || !novaMatricula.trim()) { setErroAluno("Preencha nome e matrícula."); return; }
+    setSalvandoAluno(true);
+    try {
+      await adicionarAlunoATurma({
+        turmaId: turmaSelecionada.id, turmaNome: turmaSelecionada.nome,
+        professorUid: perfil.uid, professorNome: perfil.nome,
+        nome: novoNome.trim(), matricula: novaMatricula.replace(/\D/g, ""),
+      });
+      setNovoNome(""); setNovaMatricula("");
+      await carregarAlunos(turmaSelecionada.id);
+    } catch {
+      setErroAluno("Não foi possível salvar este aluno. Tente novamente.");
+    }
+    setSalvandoAluno(false);
+  };
+
+  const removerUmAluno = async (aluno) => {
+    if (!window.confirm(`Remover ${aluno.aluno} (matrícula ${aluno.matricula}) desta turma?\n\nOs lançamentos que ele já fez continuam guardados, mas ele deixa de conseguir entrar por essa matrícula.`)) return;
+    await removerAlunoDaTurma(turmaSelecionada.id, aluno.id, aluno.matricula);
+    await carregarAlunos(turmaSelecionada.id);
   };
 
   if (turmas === null) return <p className="text-sm text-inksoft">Carregando…</p>;
@@ -342,7 +370,7 @@ function GestaoTurmasView({ perfil }) {
       professorUid: perfil.uid, professorNome: perfil.nome, alunos,
     });
     setResultado({ empresas, codigo });
-    setAlunosDaTurma(empresas);
+    await carregarAlunos(turmaSelecionada.id);
     setProcessando(false);
   };
 
@@ -375,28 +403,45 @@ function GestaoTurmasView({ perfil }) {
           <h2 className="font-serif text-xl mb-1">Alunos — {turmaSelecionada.nome}</h2>
           {alunosDaTurma === null ? (
             <p className="text-sm text-inksoft">Carregando…</p>
-          ) : alunosDaTurma.length === 0 ? (
-            <p className="text-sm text-inksoft">Nenhum aluno importado ainda nesta turma. Use o formulário abaixo.</p>
           ) : (
             <>
-              <input
-                value={buscaAluno} onChange={(e) => setBuscaAluno(e.target.value)}
-                placeholder="Buscar por nome ou matrícula..."
-                className="w-full border border-paperline rounded-sm px-3 py-2 text-sm mb-3"
-              />
-              <table className="w-full text-sm">
-                <thead><tr className="text-left text-xs text-inksoft uppercase"><th>Aluno</th><th>Matrícula</th><th>Empresa</th></tr></thead>
-                <tbody>
-                  {alunosDaTurma
-                    .filter((a) => !buscaAluno || a.aluno.toLowerCase().includes(buscaAluno.toLowerCase()) || a.matricula.includes(buscaAluno))
-                    .map((a) => (
-                      <tr key={a.id} className="border-t border-paperline">
-                        <td className="py-1.5">{a.aluno}</td><td>{a.matricula}</td><td>{a.nome}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-              <p className="text-xs text-inksoft mt-2">{alunosDaTurma.length} aluno(s) nesta turma.</p>
+              {alunosDaTurma.length === 0 ? (
+                <p className="text-sm text-inksoft mb-3">Nenhum aluno importado ainda nesta turma.</p>
+              ) : (
+                <>
+                  <input
+                    value={buscaAluno} onChange={(e) => setBuscaAluno(e.target.value)}
+                    placeholder="Buscar por nome ou matrícula..."
+                    className="w-full border border-paperline rounded-sm px-3 py-2 text-sm mb-3"
+                  />
+                  <table className="w-full text-sm mb-2">
+                    <thead><tr className="text-left text-xs text-inksoft uppercase"><th>Aluno</th><th>Matrícula</th><th>Empresa</th><th></th></tr></thead>
+                    <tbody>
+                      {alunosDaTurma
+                        .filter((a) => !buscaAluno || a.aluno.toLowerCase().includes(buscaAluno.toLowerCase()) || a.matricula.includes(buscaAluno))
+                        .map((a) => (
+                          <tr key={a.id} className="border-t border-paperline">
+                            <td className="py-1.5">{a.aluno}</td><td>{a.matricula}</td><td>{a.nome}</td>
+                            <td><button onClick={() => removerUmAluno(a)} className="text-xs text-alert border border-alert rounded-sm px-2 py-1">Remover</button></td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                  <p className="text-xs text-inksoft mb-4">{alunosDaTurma.length} aluno(s) nesta turma.</p>
+                </>
+              )}
+
+              <div className="border-t border-paperline pt-3">
+                <strong className="text-sm block mb-2">Adicionar um aluno a esta turma</strong>
+                <div className="flex gap-2 flex-wrap">
+                  <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Nome completo"
+                    className="flex-[2] min-w-[180px] border border-paperline rounded-sm px-3 py-2 text-sm" />
+                  <input value={novaMatricula} onChange={(e) => setNovaMatricula(e.target.value)} placeholder="Matrícula"
+                    className="flex-1 min-w-[120px] border border-paperline rounded-sm px-3 py-2 text-sm" />
+                  <Botao onClick={adicionarUmAluno} disabled={salvandoAluno}>{salvandoAluno ? "Salvando…" : "Adicionar"}</Botao>
+                </div>
+                {erroAluno && <p className="text-sm text-alert mt-2">{erroAluno}</p>}
+              </div>
             </>
           )}
         </Card>

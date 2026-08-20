@@ -73,10 +73,15 @@ function NovoChamado({ perfil, contexto, onCriado }) {
           )}
         </select>
         {perfil.papel === "professor" && destino === "aluno" && (
-          <select value={empresaDestino} onChange={(e) => setEmpresaDestino(e.target.value)} className="border border-paperline rounded-sm px-3 py-2 text-sm">
-            <option value="">Selecione o aluno...</option>
-            {(contexto.alunosDisponiveis || []).map((a) => <option key={a.id} value={a.id}>{a.aluno} — {a.matricula}</option>)}
-          </select>
+          <div>
+            <select value={empresaDestino} onChange={(e) => setEmpresaDestino(e.target.value)} className="border border-paperline rounded-sm px-3 py-2 text-sm">
+              <option value="">Selecione o aluno...</option>
+              {(contexto.alunosDisponiveis || []).map((a) => <option key={a.id} value={a.id}>{a.nome} — {a.aluno} (matrícula {a.matricula})</option>)}
+            </select>
+            {(!contexto.alunosDisponiveis || contexto.alunosDisponiveis.length === 0) && (
+              <p className="text-xs text-alert mt-1">Nenhum aluno cadastrado ainda nas suas turmas — importe alunos em Gestão → Turmas primeiro.</p>
+            )}
+          </div>
         )}
       </div>
       <input value={assunto} onChange={(e) => setAssunto(e.target.value)} placeholder="Assunto"

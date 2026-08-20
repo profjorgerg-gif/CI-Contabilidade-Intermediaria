@@ -23,12 +23,16 @@ function gerarIdEmpresa() {
 // Aceita linhas como:
 //   "João da Silva, 2024001"
 //   "João da Silva - 2024001"
-//   "João da Silva  2024001"   (nome + matrícula separados por espaços)
+//   "João da Silva 2024001"       (um único espaço também funciona)
+//   "João da Silva  2024001"      (dois espaços também funciona)
 export function parseListaColada(texto) {
   const linhas = texto.split("\n").map((l) => l.trim()).filter(Boolean);
   const alunos = [];
   for (const linha of linhas) {
-    const partes = linha.split(/,|-| {2,}/).map((p) => p.trim()).filter(Boolean);
+    const temSeparadorExplicito = /[,\-]/.test(linha);
+    const partes = temSeparadorExplicito
+      ? linha.split(/,|-/).map((p) => p.trim()).filter(Boolean)
+      : linha.split(/\s+/).filter(Boolean);
     if (partes.length < 2) continue;
     const matricula = partes[partes.length - 1].replace(/\D/g, "");
     const nome = partes.slice(0, -1).join(" ").trim();
@@ -50,8 +54,15 @@ export function nomeEmpresaParaAluno(nomeAluno) {
 // (mesma matrícula), a empresa existente dele é REAPROVEITADA — só o nome é
 // atualizado, se tiver mudado. Isso evita que reimportar um PDF atualizado
 // crie uma empresa duplicada e "perca" os lançamentos que o aluno já fez.
+//
+// A lista final da turma é um MERGE com o que já existia — importar uma
+// lista menor ou parcial não apaga alunos que já estavam cadastrados.
 export async function criarEmpresasParaTurma({ turmaId, turmaNome, professorUid, professorNome, alunos }) {
-  const empresas = [];
+  const existentesR = await window.storage.get(`empresas_${turmaId}`, true).catch(() => null);
+  const existentes = existentesR ? JSON.parse(existentesR.value) : [];
+  const porMatricula = new Map(existentes.map((e) => [e.matricula, e]));
+
+  const empresasProcessadas = [];
   for (const aluno of alunos) {
     const existente = await buscarPorMatricula(aluno.matricula);
     const empresaId = existente ? existente.empresaId : gerarIdEmpresa();
@@ -62,15 +73,14 @@ export async function criarEmpresasParaTurma({ turmaId, turmaNome, professorUid,
       aluno: aluno.nome,
       matricula: aluno.matricula,
       turmaId,
-      criadaEm: existente ? undefined : Date.now(),
-      reimportadaEm: existente ? Date.now() : undefined,
+      criadaEm: Date.now(),
     };
-    // Preserva a data de criação original se a empresa já existia.
     if (existente) {
       const antiga = await window.storage.get(`empresa_${empresaId}`, true);
       if (antiga) empresa.criadaEm = JSON.parse(antiga.value).criadaEm;
     }
-    empresas.push(empresa);
+    empresasProcessadas.push(empresa);
+    porMatricula.set(aluno.matricula, empresa);
 
     await window.storage.set(`empresa_${empresaId}`, JSON.stringify(empresa), true);
     await window.storage.set(`matricula_${aluno.matricula}`, JSON.stringify({
@@ -83,9 +93,30 @@ export async function criarEmpresasParaTurma({ turmaId, turmaNome, professorUid,
     id: turmaId, nome: turmaNome, professorUid, professor: professorNome,
   }), true);
 
-  await window.storage.set(`empresas_${turmaId}`, JSON.stringify(empresas), true);
+  const listaFinal = Array.from(porMatricula.values());
+  await window.storage.set(`empresas_${turmaId}`, JSON.stringify(listaFinal), true);
 
-  return { empresas, codigo };
+  return { empresas: empresasProcessadas, codigo };
+}
+
+// Adiciona (ou atualiza) UM único aluno à turma, sem afetar os demais.
+export async function adicionarAlunoATurma({ turmaId, turmaNome, professorUid, professorNome, nome, matricula }) {
+  const { empresas } = await criarEmpresasParaTurma({
+    turmaId, turmaNome, professorUid, professorNome, alunos: [{ nome, matricula }],
+  });
+  return empresas[0];
+}
+
+// Remove um aluno da turma. A empresa e os lançamentos dele NÃO são apagados
+// (ficam preservados, só saem da lista da turma), e a matrícula deixa de
+// resolver login — reimportar a mesma matrícula depois recria o vínculo.
+export async function removerAlunoDaTurma(turmaId, empresaId, matricula) {
+  const existentesR = await window.storage.get(`empresas_${turmaId}`, true).catch(() => null);
+  const existentes = existentesR ? JSON.parse(existentesR.value) : [];
+  const restantes = existentes.filter((e) => e.id !== empresaId);
+  await window.storage.set(`empresas_${turmaId}`, JSON.stringify(restantes), true);
+  await window.storage.delete(`matricula_${matricula}`, true).catch(() => {});
+  return restantes;
 }
 
 // Busca a empresa (e a turma) de um aluno a partir da matrícula digitada —
