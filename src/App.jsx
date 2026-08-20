@@ -14,6 +14,7 @@ import { Novidades } from "./components/Novidades";
 import { ManualProfessor, ManualAluno } from "./components/Manuais";
 import { Relatorios } from "./components/Relatorios";
 import { Correcoes } from "./components/Correcoes";
+import { DashboardEmpresa, DashboardProfessor } from "./components/Dashboard";
 import { gerarBackupZip } from "./lib/backup";
 
 // ============================================================================
@@ -267,6 +268,7 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
   const [paginaAtiva, setPaginaAtiva] = useState("m1"); // id de módulo, "suporte" ou "manual"
 
   const conteudo = () => {
+    if (paginaAtiva === "dashboard") return <DashboardEmpresa empresaId={registro.empresaId} nomeEmpresa={registro.nomeEmpresa} />;
     if (paginaAtiva === "suporte") {
       return <Suporte perfil={perfil} contexto={{ empresaId: registro.empresaId, professorUid: registro.professorUid, professorNome: registro.professorNome }} />;
     }
@@ -293,6 +295,13 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
           ))}
         </div>
         <div className="space-y-1 mb-4 border-t border-paperline pt-3">
+          <button onClick={() => setPaginaAtiva("dashboard")}
+            className={`w-full text-left flex items-start gap-2 px-2 py-2 text-[13px] leading-snug rounded-sm border-l-2 ${
+              paginaAtiva === "dashboard" ? "border-ledger bg-ledgersoft font-semibold text-ledger" : "border-transparent text-ink hover:bg-ledgersoft"
+            }`}>
+            <span className="font-mono text-[11px] text-debit shrink-0 pt-px">12</span>
+            <span className="flex-1">Dashboard</span>
+          </button>
           <button onClick={() => setPaginaAtiva("suporte")}
             className={`w-full text-left flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm ${paginaAtiva === "suporte" ? "bg-ledgersoft text-ledger font-semibold" : "text-ink hover:bg-ledgersoft"}`}>
             <LifeBuoy size={14} /> Suporte
@@ -653,6 +662,7 @@ function ProfessorDashboard({ perfil, onSair }) {
 
   const conteudo = () => {
     if (pagina === "turmas") return <GestaoTurmasView perfil={perfil} />;
+    if (pagina === "dashboard") return <DashboardProfessor perfil={perfil} turmas={turmas} />;
     if (pagina === "usuarios") return <EmConstrucao titulo="Usuários" />;
     if (pagina === "relatorios") return <Relatorios perfil={perfil} />;
     if (pagina === "correcoes") return <Correcoes perfil={perfil} />;
@@ -738,6 +748,7 @@ function ProfessorDashboard({ perfil, onSair }) {
             </div>
           </div>
           <ItemMenu ativo={pagina === "inicio"} icon={LayoutGrid} label="Início" onClick={() => setPagina("inicio")} />
+          <ItemMenu ativo={pagina === "dashboard"} icon={FileBarChart} label="Dashboard" onClick={() => setPagina("dashboard")} />
 
           <TituloGrupo>Gestão</TituloGrupo>
           {ITENS_GESTAO.map((item) => (
