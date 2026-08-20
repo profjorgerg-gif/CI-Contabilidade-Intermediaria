@@ -31,22 +31,38 @@ export function Botao({ children, onClick, secondary, disabled, className = "" }
 // ============================================================================
 export function SimuladorLancamentos({ empresaId, moduleId, contas, eventos, notaEmpresa }) {
   const sim = useSimulador(empresaId, moduleId, contas);
+  const [criandoLivre, setCriandoLivre] = React.useState(false);
+  const [tituloLivre, setTituloLivre] = React.useState("");
+  const [narrativaLivre, setNarrativaLivre] = React.useState("");
 
   if (sim.carregando) return <p className="text-sm text-inksoft">Carregando lançamentos…</p>;
+
+  const todosEventos = [...eventos, ...sim.eventosExtras];
+
+  const criarLivre = async () => {
+    if (!tituloLivre.trim()) return;
+    await sim.adicionarEventoLivre(tituloLivre.trim(), narrativaLivre.trim());
+    setTituloLivre(""); setNarrativaLivre(""); setCriandoLivre(false);
+  };
 
   return (
     <div>
       {notaEmpresa && (
         <div className="text-xs text-inksoft bg-ledgersoft border-l-2 border-ledger px-3 py-2 mb-4" dangerouslySetInnerHTML={{ __html: notaEmpresa }} />
       )}
-      {eventos.map((ev) => {
+      {todosEventos.map((ev) => {
         const linhas = sim.draftDoEvento(ev.id);
         const totais = sim.totaisDoEvento(ev.id);
         const balanceado = totais.debito === totais.credito && totais.debito > 0;
         const historico = sim.historicoDoEvento(ev.id);
         return (
           <Card key={ev.id}>
-            <strong className="block mb-1">{ev.titulo}</strong>
+            <div className="flex justify-between items-start">
+              <strong className="block mb-1">{ev.titulo}</strong>
+              {ev.id.startsWith("livre_") && (
+                <button onClick={() => sim.removerEventoLivre(ev.id)} className="text-xs text-alert border border-alert rounded-sm px-2 py-1">Remover</button>
+              )}
+            </div>
             <p className="text-sm text-inksoft mb-3">{ev.narrativa}</p>
 
             <table className="w-full text-sm mb-3">
@@ -121,6 +137,25 @@ export function SimuladorLancamentos({ empresaId, moduleId, contas, eventos, not
       })}
 
       <Card>
+        <strong className="block mb-2">Adicionar lançamento</strong>
+        <p className="text-xs text-inksoft mb-3">Crie quantos lançamentos adicionais precisar, além dos eventos guiados acima.</p>
+        {!criandoLivre ? (
+          <Botao secondary onClick={() => setCriandoLivre(true)}>+ Novo lançamento</Botao>
+        ) : (
+          <div>
+            <input value={tituloLivre} onChange={(e) => setTituloLivre(e.target.value)} placeholder="Título do lançamento"
+              className="w-full border border-paperline rounded-sm px-3 py-2 text-sm mb-2" />
+            <textarea value={narrativaLivre} onChange={(e) => setNarrativaLivre(e.target.value)} placeholder="Descrição da operação (opcional)"
+              className="w-full min-h-[60px] border border-paperline rounded-sm px-3 py-2 text-sm mb-2" />
+            <div className="flex gap-2">
+              <Botao onClick={criarLivre} disabled={!tituloLivre.trim()}>Criar lançamento</Botao>
+              <Botao secondary onClick={() => { setCriandoLivre(false); setTituloLivre(""); setNarrativaLivre(""); }}>Cancelar</Botao>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      <Card>
         <strong className="block mb-3">Saldo acumulado (todos os eventos lançados)</strong>
         {sim.saldoAcumulado().length === 0 ? (
           <p className="text-sm text-inksoft">Ainda não há lançamentos registrados. Complete os eventos acima.</p>
@@ -146,6 +181,80 @@ export function SimuladorLancamentos({ empresaId, moduleId, contas, eventos, not
 
 // ============================================================================
 // Estudo de Caso — texto + pergunta(s) + resposta salva no Firestore.
+// ============================================================================
+// ============================================================================
+// Estudo de Caso AVALIADO — o aluno escreve e envia para correção; o
+// professor atribui nota de 0 a 10 e um retorno em texto. Usado nos módulos
+// que pedem correção do professor (7.0 e 11.0).
+// ============================================================================
+export function EstudoDeCasoAvaliado({ empresaId, moduleId, html, extra }) {
+  const chave = `${moduleId}_caso_avaliado_${empresaId}`;
+  const [dados, setDados] = React.useState(null);
+  const [texto, setTexto] = React.useState("");
+  const [status, setStatus] = React.useState("");
+
+  React.useEffect(() => {
+    (async () => {
+      const r = await window.storage.get(chave, true).catch(() => null);
+      const valor = r ? JSON.parse(r.value) : { texto: "", status: "rascunho" };
+      setDados(valor);
+      setTexto(valor.texto || "");
+    })();
+  }, [chave]);
+
+  const salvarRascunho = async () => {
+    const novo = { ...dados, texto, status: "rascunho" };
+    setDados(novo);
+    await window.storage.set(chave, JSON.stringify(novo), true);
+    setStatus("Salvo ✓");
+    setTimeout(() => setStatus(""), 1400);
+  };
+
+  const enviar = async () => {
+    if (!texto.trim()) return;
+    const novo = { ...dados, texto, status: "enviado", enviadoEm: Date.now() };
+    setDados(novo);
+    await window.storage.set(chave, JSON.stringify(novo), true);
+  };
+
+  if (!dados) return <p className="text-sm text-inksoft">Carregando…</p>;
+
+  const bloqueado = dados.status === "enviado" || dados.status === "corrigido";
+
+  return (
+    <Card>
+      {extra}
+      <div className="teoria-conteudo" dangerouslySetInnerHTML={{ __html: html }} />
+      <textarea
+        value={texto} onChange={(e) => setTexto(e.target.value)} disabled={bloqueado}
+        placeholder="Digite sua resposta aqui..."
+        className="w-full min-h-[160px] mt-3 border border-paperline rounded-sm px-3 py-2 text-sm disabled:bg-paper"
+      />
+      {!bloqueado && (
+        <div className="mt-2 flex items-center gap-3">
+          <Botao secondary onClick={salvarRascunho}>Salvar rascunho</Botao>
+          <Botao onClick={enviar} disabled={!texto.trim()}>Enviar para correção</Botao>
+          {status && <span className="text-xs text-ledger">{status}</span>}
+        </div>
+      )}
+      {dados.status === "enviado" && (
+        <p className="text-sm text-inksoft mt-3 bg-ledgersoft border-l-2 border-ledger px-3 py-2">
+          Enviado para o professor em {new Date(dados.enviadoEm).toLocaleString("pt-BR")}. Aguardando correção.
+        </p>
+      )}
+      {dados.status === "corrigido" && (
+        <div className="text-sm mt-3 bg-ledgersoft border-l-2 border-ledger px-3 py-2">
+          <strong>Nota: {dados.nota}/10</strong>
+          {dados.feedback && <p className="mt-1 text-inksoft">{dados.feedback}</p>}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ============================================================================
+// Estudo de Caso — texto + pergunta(s) + resposta salva no Firestore.
+// (versão simples, sem envio para correção — usada no Módulo 4.0)
 // ============================================================================
 export function EstudoDeCaso({ empresaId, moduleId, html }) {
   const chave = `${moduleId}_resposta_caso_${empresaId}`;

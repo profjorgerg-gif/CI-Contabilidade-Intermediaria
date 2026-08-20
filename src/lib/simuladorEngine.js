@@ -16,7 +16,9 @@ function novaLinha(tipo) { return { conta: "", tipo, valor: "" }; }
 // num módulo. Os dados ficam em ci_dados/{moduleId}_lancamentos_{empresaId}.
 export function useSimulador(empresaId, moduleId, contas) {
   const chave = `${moduleId}_lancamentos_${empresaId}`;
+  const chaveExtras = `${moduleId}_eventos_extra_${empresaId}`;
   const [lancamentos, setLancamentos] = useState(null);
+  const [eventosExtras, setEventosExtras] = useState(null);
   const [draft, setDraft] = useState({});
 
   useEffect(() => {
@@ -28,9 +30,32 @@ export function useSimulador(empresaId, moduleId, contas) {
       } catch {
         if (alive) setLancamentos([]);
       }
+      try {
+        const rExtras = await window.storage.get(chaveExtras, true);
+        if (alive) setEventosExtras(rExtras ? JSON.parse(rExtras.value) : []);
+      } catch {
+        if (alive) setEventosExtras([]);
+      }
     })();
     return () => { alive = false; };
-  }, [chave]);
+  }, [chave, chaveExtras]);
+
+  const adicionarEventoLivre = async (titulo, narrativa) => {
+    const novo = { id: `livre_${Date.now()}`, titulo: titulo || "Lançamento adicional", narrativa: narrativa || "Lançamento criado livremente pelo aluno." };
+    const nova = [...(eventosExtras || []), novo];
+    setEventosExtras(nova);
+    await window.storage.set(chaveExtras, JSON.stringify(nova), true);
+    return novo.id;
+  };
+
+  const removerEventoLivre = async (eventoId) => {
+    const nova = (eventosExtras || []).filter((e) => e.id !== eventoId);
+    setEventosExtras(nova);
+    await window.storage.set(chaveExtras, JSON.stringify(nova), true);
+    const semLancamentos = (lancamentos || []).filter((l) => l.eventoId !== eventoId);
+    setLancamentos(semLancamentos);
+    await window.storage.set(chave, JSON.stringify(semLancamentos), true);
+  };
 
   const draftDoEvento = useCallback((eventoId) => {
     return draft[eventoId] || [novaLinha("D"), novaLinha("C")];
@@ -102,7 +127,9 @@ export function useSimulador(empresaId, moduleId, contas) {
   };
 
   return {
-    carregando: lancamentos === null,
+    carregando: lancamentos === null || eventosExtras === null,
+    eventosExtras: eventosExtras || [],
+    adicionarEventoLivre, removerEventoLivre,
     draftDoEvento, atualizarLinha, adicionarLinha, removerLinha,
     totaisDoEvento, lancar, historicoDoEvento, saldoConta, saldoAcumulado,
   };

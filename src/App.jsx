@@ -13,6 +13,7 @@ import { Suporte } from "./components/Suporte";
 import { Novidades } from "./components/Novidades";
 import { ManualProfessor, ManualAluno } from "./components/Manuais";
 import { Relatorios } from "./components/Relatorios";
+import { Correcoes } from "./components/Correcoes";
 import { gerarBackupZip } from "./lib/backup";
 
 // ============================================================================
@@ -550,6 +551,7 @@ const ITENS_GESTAO = [
   { id: "turmas", label: "Turmas", icon: Building2 },
   { id: "usuarios", label: "Usuários", icon: Users },
   { id: "relatorios", label: "Relatórios", icon: FileBarChart },
+  { id: "correcoes", label: "Correções", icon: FileBarChart },
   { id: "backup", label: "Backup", icon: Save },
   { id: "auditoria", label: "Auditoria", icon: History },
 ];
@@ -653,6 +655,7 @@ function ProfessorDashboard({ perfil, onSair }) {
     if (pagina === "turmas") return <GestaoTurmasView perfil={perfil} />;
     if (pagina === "usuarios") return <EmConstrucao titulo="Usuários" />;
     if (pagina === "relatorios") return <Relatorios perfil={perfil} />;
+    if (pagina === "correcoes") return <Correcoes perfil={perfil} />;
     if (pagina === "backup") return (
       <div className="rounded-md p-6" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
         <strong style={{ color: "#EDEAE0" }} className="block mb-2">Backup</strong>

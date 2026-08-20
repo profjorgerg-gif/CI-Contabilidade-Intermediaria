@@ -10,11 +10,15 @@ import {
   TEORIA_M9_HTML,
   TEORIA_M10_HTML, CONTAS_M10, EVENTOS_M10,
 } from "../data/moduleData";
-import { TeoriaCard, SimuladorLancamentos, EstudoDeCaso } from "./ModuloUI";
+import { TeoriaCard, SimuladorLancamentos, EstudoDeCaso, EstudoDeCasoAvaliado } from "./ModuloUI";
 import {
   ConsultaPlanoContas, CalculadoraDepreciacao, CalculadoraProvisao,
-  MontagemDRE, MontagemDLPA, ExercicioRegimes, PainelConsolidadoM11,
+  MontagemDRE, MontagemDLPA, PainelConsolidadoM11,
 } from "./Modulos";
+import { ExercicioMultiplaEscolha, ExercicioPareamento } from "./Exercicios";
+import { EXERCICIOS_M1 } from "../data/exerciciosM1";
+import { EXERCICIOS_M2 } from "../data/exerciciosM2";
+import { EXERCICIOS_M3 } from "../data/exerciciosM3";
 
 const NOTA_EMPRESA = `Todos os eventos abaixo pertencem à mesma empresa fictícia — <strong>${EMPRESA.nome}</strong> — e usam o mesmo plano de contas. Monte cada lançamento e clique em <strong>Lançar</strong> quando débito e crédito estiverem balanceados.`;
 
@@ -24,11 +28,11 @@ const NOTA_EMPRESA = `Todos os eventos abaixo pertencem à mesma empresa fictíc
 function paineisDoModulo(moduleId, empresaId) {
   switch (moduleId) {
     case "m1":
-      return [<TeoriaCard html={TEORIA_M1_HTML} />];
+      return [<TeoriaCard html={TEORIA_M1_HTML} />, <ExercicioMultiplaEscolha empresaId={empresaId} moduleId="m1" blocos={EXERCICIOS_M1} />];
     case "m2":
-      return [<TeoriaCard html={TEORIA_M2_HTML} />, <ExercicioRegimes />];
+      return [<TeoriaCard html={TEORIA_M2_HTML} />, <ExercicioMultiplaEscolha empresaId={empresaId} moduleId="m2" blocos={EXERCICIOS_M2} />];
     case "m3":
-      return [<TeoriaCard html={ESTRUTURA_M3_HTML} />, <ConsultaPlanoContas />];
+      return [<TeoriaCard html={ESTRUTURA_M3_HTML} />, <ConsultaPlanoContas />, <ExercicioPareamento empresaId={empresaId} moduleId="m3" blocos={EXERCICIOS_M3} />];
     case "m4":
       return [
         <TeoriaCard html={TEORIA_M4_HTML} />,
@@ -44,7 +48,7 @@ function paineisDoModulo(moduleId, empresaId) {
         <SimuladorLancamentos empresaId={empresaId} moduleId="m6" contas={CONTAS_M6} eventos={EVENTOS_M6} notaEmpresa={`Os eventos abaixo continuam na empresa fictícia — <strong>${EMPRESA.nome}</strong>. Para o evento 3, calcule a cota de depreciação na aba anterior antes de lançar.`} />,
       ];
     case "m7":
-      return [<TeoriaCard html={TEORIA_M7_HTML} />, <EstudoDeCaso empresaId={empresaId} moduleId="m7" html={CASO_M7_HTML} />];
+      return [<TeoriaCard html={TEORIA_M7_HTML} />, <EstudoDeCasoAvaliado empresaId={empresaId} moduleId="m7" html={CASO_M7_HTML} />];
     case "m8":
       return [
         <TeoriaCard html={TEORIA_M8_HTML} />,

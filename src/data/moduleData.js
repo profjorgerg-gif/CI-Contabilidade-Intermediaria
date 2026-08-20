@@ -81,6 +81,26 @@ export const EVENTOS_M4 = [
     "id": "e6",
     "titulo": "Devolução de compra",
     "narrativa": "A Nova Aurora devolveu ao fornecedor Ferragens Sul R$ 2.000 em mercadorias compradas no evento 1 (valor líquido de ICMS, para simplificar)."
+  },
+  {
+    "id": "e7",
+    "titulo": "Venda à vista, com recebimento em caixa",
+    "narrativa": "Venda à vista de mercadorias por R$ 4.800, recebida em dinheiro (Caixa Geral). O custo da mercadoria vendida foi de R$ 2.900 — registre receita, CMV e baixa do estoque."
+  },
+  {
+    "id": "e8",
+    "titulo": "Recebimento de duplicata de cliente",
+    "narrativa": "A Construtora Ipê Ltda. quitou R$ 6.000 da duplicata em aberto (venda do evento 3), com o valor depositado em conta bancária."
+  },
+  {
+    "id": "e9",
+    "titulo": "Pagamento a fornecedor",
+    "narrativa": "A Nova Aurora pagou R$ 10.000 ao fornecedor Ferragens Sul, referente à compra a prazo do evento 1, via transferência bancária."
+  },
+  {
+    "id": "e10",
+    "titulo": "Compra a prazo de nova mercadoria, com ICMS",
+    "narrativa": "Compra a prazo (45 dias) de R$ 8.500 em mercadorias de um novo fornecedor, com ICMS de 18% (R$ 1.530) destacado na nota e recuperável."
   }
 ];
 export const TEORIA_M4_HTML = "\n  <div class=\"card\">\n    <strong style=\"display:block;margin-bottom:6px;\">Empresa fictícia do módulo</strong>\n    <p style=\"font-size:13.5px;color:var(--ink-soft);margin:0;\">\n      <strong>Nova Aurora Comércio de Materiais de Construção Ltda.</strong> — Comércio varejista de materiais de construção. CNPJ fictício 12.345.678/0001-90. Lucro Presumido — Regime Normal (não optante do Simples).\n      Empresa fictícia usada em todos os módulos práticos da disciplina. Compra mercadorias de fornecedores para revenda e concede prazo a parte dos clientes.\n    </p>\n  </div>\n  <div class=\"card\">\n    <strong style=\"display:block;margin-bottom:6px;\">O que são Operações com Mercadorias</strong>\n    <p style=\"font-size:13.5px;color:var(--ink-soft);\">\n      Envolvem a compra de mercadorias para revenda e sua posterior venda, incluindo devoluções e os tributos\n      incidentes (como o ICMS). Diferente de uma prestação de serviço, a operação com mercadorias gera dois\n      efeitos contábeis na venda: o reconhecimento da <em>receita</em> e a baixa do <em>custo</em> (CMV) — os dois\n      lançamentos aparecem separados nos eventos 3 e 4 do simulador abaixo.\n    </p>\n  </div>\n  <div class=\"card\">\n    <strong style=\"display:block;margin-bottom:6px;\">ICMS a Recuperar x ICMS a Recolher</strong>\n    <p style=\"font-size:13.5px;color:var(--ink-soft);\">\n      Na compra, o ICMS destacado na nota do fornecedor é um direito da empresa (ICMS a Recuperar, no Ativo).\n      Na venda, o ICMS devido é uma obrigação (ICMS a Recolher, no Passivo). A diferença entre os dois é o que,\n      de fato, será pago ao fisco no período — esse encontro de contas não é tratado neste módulo, mas fica\n      registrado no plano de contas para os módulos seguintes.\n    </p>\n  </div>\n  <div class=\"card\">\n    <strong style=\"display:block;margin-bottom:6px;\">Plano de contas usado neste módulo</strong>\n    <table class=\"mgmt\">\n      <thead><tr><th>Código</th><th>Conta</th></tr></thead>\n      <tbody><tr><td>1.1.1.01</td><td>Caixa Geral</td></tr><tr><td>1.1.1.02</td><td>Bancos Conta Movimento</td></tr><tr><td>1.1.2.02</td><td>Clientes</td></tr><tr><td>1.1.3.01</td><td>Mercadorias para Revenda</td></tr><tr><td>1.1.2.11</td><td>ICMS a Recuperar</td></tr><tr><td>2.1.1.01</td><td>Duplicatas a Pagar</td></tr><tr><td>2.1.8.04</td><td>ICMS</td></tr><tr><td>4.1.1.01</td><td>Receita de Vendas de Mercadorias</td></tr><tr><td>4.2.06</td><td>(-) Devoluções de Vendas</td></tr><tr><td>6.2.01</td><td>Custo das Mercadorias Vendidas (CMV)</td></tr></tbody>\n    </table>\n  </div>\n";
@@ -149,6 +169,26 @@ export const EVENTOS_M6 = [
     "id": "e5",
     "titulo": "Baixa por obsolescência",
     "narrativa": "Um computador antigo, já totalmente depreciado (custo R$ 3.000, depreciação acumulada R$ 3.000), é baixado por obsolescência, sem qualquer valor de venda."
+  },
+  {
+    "id": "e6",
+    "titulo": "Compra de mais um veículo, a prazo",
+    "narrativa": "A Nova Aurora compra outro veículo utilitário por R$ 45.000, a prazo (90 dias) com a concessionária."
+  },
+  {
+    "id": "e7",
+    "titulo": "Depreciação do segundo ano — veículo",
+    "narrativa": "Registre a depreciação do segundo ano do veículo do evento 1, usando o mesmo método linear (vida útil de 5 anos, sem valor residual)."
+  },
+  {
+    "id": "e8",
+    "titulo": "Venda de equipamento com perda",
+    "narrativa": "A empresa vende um equipamento de informática (custo R$ 8.000, depreciação acumulada R$ 5.000) por R$ 2.500 à vista. Registre a baixa do bem, da depreciação acumulada, o recebimento e a perda na alienação."
+  },
+  {
+    "id": "e9",
+    "titulo": "Pagamento de parcela de veículo financiado",
+    "narrativa": "Pagamento de R$ 15.000 ao fornecedor, referente à compra a prazo do evento 6, via transferência bancária."
   }
 ];
 export const TEORIA_M6_HTML = "\n  <div class=\"card\">\n    <strong style=\"display:block;margin-bottom:6px;\">Ativo Imobilizado</strong>\n    <p style=\"font-size:13.5px;color:var(--ink-soft);\">\n      São os bens tangíveis de uso duradouro na atividade da empresa (veículos, máquinas, equipamentos, imóveis),\n      não destinados à venda. O valor desses bens é reconhecido no Ativo e vai sendo reduzido ao longo do tempo\n      pela <em>depreciação</em>, que reflete o desgaste ou a perda de utilidade econômica do bem.\n    </p>\n  </div>\n  <div class=\"card\">\n    <strong style=\"display:block;margin-bottom:6px;\">Depreciação Acumulada — uma conta redutora</strong>\n    <p style=\"font-size:13.5px;color:var(--ink-soft);\">\n      A depreciação não reduz diretamente a conta do bem; ela é acumulada numa conta redutora do Ativo\n      (Depreciação Acumulada). O valor contábil líquido do bem é sempre: <strong>custo − depreciação acumulada</strong>.\n      Isso permite que o histórico de custo original do bem continue visível no balanço.\n    </p>\n  </div>\n  <div class=\"card\">\n    <strong style=\"display:block;margin-bottom:6px;\">Método linear (cotas constantes)</strong>\n    <p style=\"font-size:13.5px;color:var(--ink-soft);\">\n      É o método mais usado na contabilidade intermediária: divide-se o valor depreciável (custo − valor residual)\n      pela vida útil estimada, gerando uma cota de depreciação igual a cada período. Use a aba\n      <em>Calculadora de Depreciação</em> para montar a tabela ano a ano de qualquer bem.\n    </p>\n  </div>\n  <div class=\"card\">\n    <strong style=\"display:block;margin-bottom:6px;\">Venda ou baixa do bem</strong>\n    <p style=\"font-size:13.5px;color:var(--ink-soft);\">\n      Na venda, comparam-se o valor recebido com o valor contábil líquido do bem (custo − depreciação acumulada\n      até a data). Se o valor recebido for maior, há <em>ganho</em> na alienação; se for menor, há <em>perda</em>.\n      Na baixa por obsolescência sem venda, todo o valor contábil líquido remanescente vira perda.\n    </p>\n  </div>\n  <div class=\"card\">\n    <strong style=\"display:block;margin-bottom:6px;\">Plano de contas usado neste módulo</strong>\n    <table class=\"mgmt\">\n      <thead><tr><th>Código</th><th>Conta</th></tr></thead>\n      <tbody><tr><td>1.1.1.02</td><td>Bancos Conta Movimento</td></tr><tr><td>1.2.3.03</td><td>Veículos</td></tr><tr><td>1.2.3.07</td><td>Equipamentos de Informática</td></tr><tr><td>1.2.3.53</td><td>(-) Depreciação Acumulada Veículos</td></tr><tr><td>1.2.3.57</td><td>(-) Depreciação Acumulada Equipamentos de Informática</td></tr><tr><td>2.1.1.01</td><td>Duplicatas a Pagar</td></tr><tr><td>5.1.10</td><td>Depreciação</td></tr><tr><td>5.4.01</td><td>Perdas Diversas</td></tr><tr><td>4.4.04</td><td>Ganho na Venda de Imobilizado</td></tr></tbody>\n    </table>\n  </div>\n";
@@ -207,6 +247,16 @@ export const EVENTOS_M8 = [
     "id": "e2",
     "titulo": "Reversão parcial — recebimento da Auto Peças Rio Ltda.",
     "narrativa": "Após a constituição, a Auto Peças Rio Ltda. quitou integralmente o título de R$ 1.800,00 que estava na faixa \"31 a 60 dias\". Reverta a parcela da provisão constituída para esse cliente (valor = R$ 1.800,00 × percentual aplicado à faixa \"31 a 60 dias\")."
+  },
+  {
+    "id": "e3",
+    "titulo": "Reversão parcial — recebimento do Mercado Bom Preço Ltda.",
+    "narrativa": "O Mercado Bom Preço Ltda. também quitou o título de R$ 3.200,00 (faixa \"Até 30 dias\"). Reverta a parcela da provisão constituída para esse cliente."
+  },
+  {
+    "id": "e4",
+    "titulo": "Constituição adicional — novo cliente inadimplente",
+    "narrativa": "Um novo cliente, não incluído na tabela original, entrou em atraso com um título de R$ 4.000,00 na faixa \"61 a 90 dias\". Calcule e registre a constituição da provisão adicional para esse valor (use o mesmo percentual da faixa \"61 a 90 dias\" definido na Calculadora de Provisão)."
   }
 ];
 export const M8_PERCENTUAIS_PADRAO = {
@@ -321,6 +371,26 @@ export const EVENTOS_M10 = [
     "id": "e5",
     "titulo": "Desconto financeiro concedido a fornecedor",
     "narrativa": "A Nova Aurora paga antecipadamente uma duplicata de R$ 5.000 a um fornecedor e recebe R$ 150 de desconto financeiro pela antecipação."
+  },
+  {
+    "id": "e6",
+    "titulo": "Resgate parcial da aplicação",
+    "narrativa": "A empresa resgata R$ 10.000 da aplicação de liquidez imediata do evento 1, transferindo o valor de volta para a conta bancária."
+  },
+  {
+    "id": "e7",
+    "titulo": "Pagamento de parcela do empréstimo, com juros",
+    "narrativa": "Pagamento de R$ 5.000 de amortização do empréstimo do evento 3, mais R$ 800 de juros já reconhecidos no evento 4, tudo via banco."
+  },
+  {
+    "id": "e8",
+    "titulo": "Desconto financeiro obtido de cliente",
+    "narrativa": "Um cliente pagou uma duplicata de R$ 3.000 antecipadamente, e a Nova Aurora concedeu R$ 90 de desconto financeiro — mas do ponto de vista de quem recebe um desconto ao antecipar pagamento a fornecedor, registre também R$ 60 de desconto obtido em outra operação com fornecedor."
+  },
+  {
+    "id": "e9",
+    "titulo": "Nova aplicação financeira",
+    "narrativa": "A empresa aplica mais R$ 15.000 do saldo bancário em uma nova aplicação de liquidez imediata."
   }
 ];
 
@@ -333,7 +403,8 @@ export const MODULES = [
     "title": "Princípios Contábeis e NBC",
     "desc": "Base conceitual: princípios de contabilidade e Normas Brasileiras de Contabilidade que sustentam todos os demais módulos.",
     "tabs": [
-      "Teoria"
+      "Teoria",
+      "Exercícios"
     ]
   },
   {
@@ -353,7 +424,8 @@ export const MODULES = [
     "desc": "Estrutura hierárquica do plano de contas oficial da disciplina e consulta completa a todas as contas.",
     "tabs": [
       "Estrutura Hierárquica",
-      "Consulta ao Plano de Contas"
+      "Consulta ao Plano de Contas",
+      "Exercícios de Pareamento"
     ]
   },
   {
