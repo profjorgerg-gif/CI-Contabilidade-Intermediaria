@@ -12,6 +12,18 @@ export const STATUS = {
 
 function gerarId() { return Math.random().toString(36).slice(2, 10); }
 
+// Contador compartilhado para gerar códigos de chamado sequenciais (CH-0001,
+// CH-0002...). Simples e suficiente para o volume de uma turma/escola —
+// não é uma sequência 100% atômica sob concorrência extrema, mas isso não é
+// um risco real neste contexto de uso.
+async function proximoCodigoChamado() {
+  const r = await window.storage.get("chamados_contador", true).catch(() => null);
+  const atual = r ? parseInt(JSON.parse(r.value), 10) || 0 : 0;
+  const novo = atual + 1;
+  await window.storage.set("chamados_contador", JSON.stringify(novo), true);
+  return `CH-${String(novo).padStart(4, "0")}`;
+}
+
 function Badge({ status }) {
   const s = STATUS[status] || STATUS.aberto;
   return <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ color: s.cor, border: `1px solid ${s.cor}` }}>{s.label}</span>;
@@ -47,7 +59,7 @@ function NovoChamado({ perfil, contexto, onCriado }) {
     }
 
     const chamado = {
-      id: gerarId(), tipo,
+      id: gerarId(), codigo: await proximoCodigoChamado(), tipo,
       origemPerfil: perfil.papel, origemUid: perfil.uid, origemNome: perfil.nome,
       destinoPerfil, destinoUid, destinoNome, alunoEmpresaId,
       assunto: assunto.trim(), status: "aberto", criadoEm: Date.now(),
@@ -112,7 +124,10 @@ function LinhaChamado({ chamado, perfil, podeAlterarStatus, onResponder, onAlter
     <div className="border-t border-paperline py-3">
       <button onClick={() => setAberto(!aberto)} className="w-full text-left flex justify-between items-center gap-3">
         <div>
-          <div className="text-sm font-medium">{chamado.assunto}</div>
+          <div className="text-sm font-medium">
+            {chamado.codigo && <span className="font-mono text-xs text-debit mr-2">{chamado.codigo}</span>}
+            {chamado.assunto}
+          </div>
           <div className="text-xs text-inksoft">{TIPOS[chamado.tipo]} · de {chamado.origemNome} para {chamado.destinoNome} · {new Date(chamado.criadoEm).toLocaleString("pt-BR")}</div>
         </div>
         <Badge status={chamado.status} />

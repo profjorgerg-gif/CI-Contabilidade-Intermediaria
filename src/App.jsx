@@ -580,6 +580,45 @@ function TituloGrupo({ children }) {
 // ============================================================================
 // Dashboard do professor / Usuário Mestre — menu lateral completo
 // ============================================================================
+// ============================================================================
+// Permite que uma conta já cadastrada como Professor(a) vire Usuário Mestre
+// depois do primeiro acesso — necessário porque o código de Mestre só era
+// pedido na criação do perfil, e contas criadas antes disso ficam sem opção.
+// ============================================================================
+function PromoverParaMestre({ perfil }) {
+  const [aberto, setAberto] = useState(false);
+  const [codigo, setCodigo] = useState("");
+  const [erro, setErro] = useState("");
+  const [enviando, setEnviando] = useState(false);
+
+  const confirmar = async () => {
+    setErro("");
+    if (codigo.trim() !== CODIGO_MESTRE) { setErro("Código incorreto."); return; }
+    setEnviando(true);
+    const perfilAtualizado = { ...perfil, papel: "mestre" };
+    await window.storage.set(`usuario_${perfil.uid}`, JSON.stringify(perfilAtualizado), true);
+    window.location.reload();
+  };
+
+  if (!aberto) {
+    return (
+      <button onClick={() => setAberto(true)} className="w-full text-left text-xs px-3 py-2 mt-2" style={{ color: "#5C6E69" }}>
+        Sou o Usuário Mestre
+      </button>
+    );
+  }
+  return (
+    <div className="px-3 py-2 mt-2 rounded-md" style={{ background: "#14201F", border: "1px solid #33443F" }}>
+      <input value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="Código de Usuário Mestre"
+        className="w-full text-xs rounded px-2 py-1.5 mb-2" style={{ background: "#1E302E", border: "1px solid #33443F", color: "#EDEAE0" }} />
+      {erro && <p className="text-[11px] mb-2" style={{ color: "#E08A8A" }}>{erro}</p>}
+      <button onClick={confirmar} disabled={enviando} className="text-xs rounded px-3 py-1.5 w-full" style={{ background: "#C79A56", color: "#2C1E0E" }}>
+        {enviando ? "Confirmando…" : "Confirmar"}
+      </button>
+    </div>
+  );
+}
+
 function ProfessorDashboard({ perfil, onSair }) {
   const [turmas] = useSharedList("turmas");
   const [pagina, setPagina] = useState("inicio");
@@ -711,6 +750,8 @@ function ProfessorDashboard({ perfil, onSair }) {
           {ITENS_OUTROS.map((item) => (
             <ItemMenu key={item.id} ativo={pagina === item.id} icon={item.icon} label={item.label} onClick={() => setPagina(item.id)} />
           ))}
+
+          {perfil.papel !== "mestre" && <PromoverParaMestre perfil={perfil} />}
 
           <button onClick={onSair} className="w-full flex items-center gap-2.5 text-sm px-3 py-2 mt-4 rounded-md" style={{ color: "#93A39F", borderTop: "1px solid #26332F" }}>
             <LogOut size={15} /> Sair
