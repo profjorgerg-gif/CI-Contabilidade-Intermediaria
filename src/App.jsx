@@ -280,14 +280,14 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
           <div className="font-serif text-lg">{registro.nomeEmpresa}</div>
           <div className="text-xs text-inksoft">{registro.turmaNome}</div>
         </div>
-        <div className="space-y-1 mb-4">
+        <div className="space-y-0.5 mb-4">
           {MODULES.map((m) => (
             <button key={m.id} onClick={() => setPaginaAtiva(m.id)}
-              className={`w-full text-left flex items-baseline gap-2 px-2 py-1.5 text-sm rounded-sm border-l-2 ${
+              className={`w-full text-left flex items-start gap-2 px-2 py-2 text-[13px] leading-snug rounded-sm border-l-2 ${
                 paginaAtiva === m.id ? "border-ledger bg-ledgersoft font-semibold text-ledger" : "border-transparent text-ink hover:bg-ledgersoft"
               }`}>
-              <span className="font-mono text-xs text-debit min-w-[26px]">{m.code}</span>
-              <span>{m.title}</span>
+              <span className="font-mono text-[11px] text-debit shrink-0 pt-px">{m.code}</span>
+              <span className="flex-1">{m.title}</span>
             </button>
           ))}
         </div>
@@ -566,10 +566,10 @@ const ITENS_OUTROS = [
 function ItemMenu({ ativo, icon: Icon, label, onClick }) {
   return (
     <button onClick={onClick}
-      className="w-full flex items-center gap-2.5 text-sm px-3 py-2 rounded-md text-left"
+      className="w-full flex items-start gap-2.5 text-sm px-3 py-2 rounded-md text-left leading-snug"
       style={ativo ? { background: "#2E4643", color: "#EDEAE0" } : { color: "#93A39F" }}>
-      <Icon size={16} style={{ color: ativo ? "#C79A56" : "#6E7E7A" }} />
-      {label}
+      <Icon size={16} className="shrink-0 mt-0.5" style={{ color: ativo ? "#C79A56" : "#6E7E7A" }} />
+      <span className="flex-1">{label}</span>
     </button>
   );
 }
