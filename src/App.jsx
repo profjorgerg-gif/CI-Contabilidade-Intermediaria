@@ -9,6 +9,11 @@ import { useSharedList } from "./lib/hooks";
 import { criarEmpresasParaTurma, parseListaColada, buscarPorMatricula, buscarPorCodigoTurma, gerarCodigoTurma } from "./lib/rosterImport";
 import { extrairListaDoPDF } from "./lib/rosterPdf";
 import { ModuleContent, MODULES } from "./components/ModuleRouter";
+import { Suporte } from "./components/Suporte";
+import { Novidades } from "./components/Novidades";
+import { ManualProfessor, ManualAluno } from "./components/Manuais";
+import { Relatorios } from "./components/Relatorios";
+import { gerarBackupZip } from "./lib/backup";
 
 // ============================================================================
 // Componentes pequenos de UI (mesmo espírito visual do index.html da CI)
@@ -46,6 +51,22 @@ function Input(props) {
 // Tela de configuração pendente — aparece se firebaseApp.js ainda não foi
 // preenchido com as credenciais reais do projeto Firebase.
 // ============================================================================
+// ============================================================================
+// Sair com opção de backup — pergunta antes de encerrar a sessão.
+// ============================================================================
+async function sairComBackup() {
+  const querBackup = window.confirm("Deseja realizar o backup dos dados antes de sair?");
+  if (querBackup) {
+    try {
+      const nome = await gerarBackupZip();
+      window.alert(`Backup gerado: ${nome}`);
+    } catch (err) {
+      window.alert("Não foi possível gerar o backup agora. Você pode tentar novamente pelo menu Backup.");
+    }
+  }
+  await sair();
+}
+
 function TelaConfigPendente() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
@@ -213,8 +234,16 @@ function TelaInformarMatricula({ perfil, onSair, onEncontrado }) {
 // Workspace do aluno — navegação pelos 11 módulos + conteúdo real,
 // portado do protótipo em HTML único já aprovado.
 // ============================================================================
-function AlunoWorkspace({ registro, onSair }) {
-  const [moduloAtivo, setModuloAtivo] = useState("m1");
+function AlunoWorkspace({ registro, perfil, onSair }) {
+  const [paginaAtiva, setPaginaAtiva] = useState("m1"); // id de módulo, "suporte" ou "manual"
+
+  const conteudo = () => {
+    if (paginaAtiva === "suporte") {
+      return <Suporte perfil={perfil} contexto={{ empresaId: registro.empresaId, professorUid: registro.professorUid, professorNome: registro.professorNome }} />;
+    }
+    if (paginaAtiva === "manual") return <ManualAluno />;
+    return <ModuleContent moduleId={paginaAtiva} empresaId={registro.empresaId} />;
+  };
 
   return (
     <div className="min-h-screen grid" style={{ gridTemplateColumns: "260px 1fr" }}>
@@ -225,19 +254,29 @@ function AlunoWorkspace({ registro, onSair }) {
         </div>
         <div className="space-y-1 mb-4">
           {MODULES.map((m) => (
-            <button key={m.id} onClick={() => setModuloAtivo(m.id)}
+            <button key={m.id} onClick={() => setPaginaAtiva(m.id)}
               className={`w-full text-left flex items-baseline gap-2 px-2 py-1.5 text-sm rounded-sm border-l-2 ${
-                moduloAtivo === m.id ? "border-ledger bg-ledgersoft font-semibold text-ledger" : "border-transparent text-ink hover:bg-ledgersoft"
+                paginaAtiva === m.id ? "border-ledger bg-ledgersoft font-semibold text-ledger" : "border-transparent text-ink hover:bg-ledgersoft"
               }`}>
               <span className="font-mono text-xs text-debit min-w-[26px]">{m.code}</span>
               <span>{m.title}</span>
             </button>
           ))}
         </div>
+        <div className="space-y-1 mb-4 border-t border-paperline pt-3">
+          <button onClick={() => setPaginaAtiva("suporte")}
+            className={`w-full text-left flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm ${paginaAtiva === "suporte" ? "bg-ledgersoft text-ledger font-semibold" : "text-ink hover:bg-ledgersoft"}`}>
+            <LifeBuoy size={14} /> Suporte
+          </button>
+          <button onClick={() => setPaginaAtiva("manual")}
+            className={`w-full text-left flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm ${paginaAtiva === "manual" ? "bg-ledgersoft text-ledger font-semibold" : "text-ink hover:bg-ledgersoft"}`}>
+            <BookOpen size={14} /> Manual do Aluno
+          </button>
+        </div>
         <button onClick={onSair} className="flex items-center gap-2 text-sm text-inksoft border-t border-paperline pt-4 w-full"><LogOut size={15} /> Sair</button>
       </nav>
       <main className="p-8 max-w-3xl">
-        <ModuleContent moduleId={moduloAtivo} empresaId={registro.empresaId} />
+        {conteudo()}
       </main>
     </div>
   );
@@ -256,6 +295,19 @@ function GestaoTurmasView({ perfil }) {
   const [modoImportacao, setModoImportacao] = useState("pdf"); // "pdf" | "colar"
   const [erroPdf, setErroPdf] = useState("");
   const [nomePdfCarregado, setNomePdfCarregado] = useState("");
+  const [alunosDaTurma, setAlunosDaTurma] = useState(null);
+  const [buscaAluno, setBuscaAluno] = useState("");
+
+  const carregarAlunos = async (turmaId) => {
+    setAlunosDaTurma(null);
+    const r = await window.storage.get(`empresas_${turmaId}`, true).catch(() => null);
+    setAlunosDaTurma(r ? JSON.parse(r.value) : []);
+  };
+
+  const selecionarTurma = (t) => {
+    setTurmaSelecionada(t); setResultado(null); setBuscaAluno("");
+    carregarAlunos(t.id);
+  };
 
   if (turmas === null) return <p className="text-sm text-inksoft">Carregando…</p>;
 
@@ -264,7 +316,7 @@ function GestaoTurmasView({ perfil }) {
     const nova = { id: Math.random().toString(36).slice(2, 10), nome: nomeTurma.trim(), professorUid: perfil.uid, professorNome: perfil.nome, criadaEm: Date.now() };
     await setTurmas([...(turmas || []), nova]);
     setNomeTurma("");
-    setTurmaSelecionada(nova);
+    selecionarTurma(nova);
   };
 
   const processarPdf = async (file) => {
@@ -290,6 +342,7 @@ function GestaoTurmasView({ perfil }) {
       professorUid: perfil.uid, professorNome: perfil.nome, alunos,
     });
     setResultado({ empresas, codigo });
+    setAlunosDaTurma(empresas);
     setProcessando(false);
   };
 
@@ -309,7 +362,7 @@ function GestaoTurmasView({ perfil }) {
         {(turmas || []).length === 0 && <p className="text-sm text-inksoft">Nenhuma turma criada ainda.</p>}
         <div className="space-y-2">
           {(turmas || []).map((t) => (
-            <button key={t.id} onClick={() => { setTurmaSelecionada(t); setResultado(null); }}
+            <button key={t.id} onClick={() => selecionarTurma(t)}
               className={`w-full text-left border rounded-sm px-4 py-2 text-sm ${turmaSelecionada?.id === t.id ? "border-ledger bg-ledgersoft" : "border-paperline"}`}>
               {t.nome}
             </button>
@@ -319,7 +372,39 @@ function GestaoTurmasView({ perfil }) {
 
       {turmaSelecionada && (
         <Card>
-          <h2 className="font-serif text-xl mb-1">Importar alunos — {turmaSelecionada.nome}</h2>
+          <h2 className="font-serif text-xl mb-1">Alunos — {turmaSelecionada.nome}</h2>
+          {alunosDaTurma === null ? (
+            <p className="text-sm text-inksoft">Carregando…</p>
+          ) : alunosDaTurma.length === 0 ? (
+            <p className="text-sm text-inksoft">Nenhum aluno importado ainda nesta turma. Use o formulário abaixo.</p>
+          ) : (
+            <>
+              <input
+                value={buscaAluno} onChange={(e) => setBuscaAluno(e.target.value)}
+                placeholder="Buscar por nome ou matrícula..."
+                className="w-full border border-paperline rounded-sm px-3 py-2 text-sm mb-3"
+              />
+              <table className="w-full text-sm">
+                <thead><tr className="text-left text-xs text-inksoft uppercase"><th>Aluno</th><th>Matrícula</th><th>Empresa</th></tr></thead>
+                <tbody>
+                  {alunosDaTurma
+                    .filter((a) => !buscaAluno || a.aluno.toLowerCase().includes(buscaAluno.toLowerCase()) || a.matricula.includes(buscaAluno))
+                    .map((a) => (
+                      <tr key={a.id} className="border-t border-paperline">
+                        <td className="py-1.5">{a.aluno}</td><td>{a.matricula}</td><td>{a.nome}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+              <p className="text-xs text-inksoft mt-2">{alunosDaTurma.length} aluno(s) nesta turma.</p>
+            </>
+          )}
+        </Card>
+      )}
+
+      {turmaSelecionada && (
+        <Card>
+          <h2 className="font-serif text-xl mb-1">Importar / atualizar alunos — {turmaSelecionada.nome}</h2>
           <p className="text-xs text-inksoft mb-4">
             A <strong>matrícula é a chave que prevalece</strong>: se um aluno já foi importado antes (mesma
             matrícula), a empresa dele é reaproveitada — nada se perde, só o nome é atualizado se tiver mudado.
@@ -368,14 +453,6 @@ function GestaoTurmasView({ perfil }) {
                 <strong>{resultado.empresas.length}</strong> empresa(s) processada(s). Código alternativo da turma:{" "}
                 <code className="bg-ledgersoft px-2 py-0.5">{resultado.codigo}</code>
               </p>
-              <table className="w-full text-sm">
-                <thead><tr className="text-left text-xs text-inksoft uppercase"><th>Aluno</th><th>Matrícula</th><th>Empresa</th></tr></thead>
-                <tbody>
-                  {resultado.empresas.map((e) => (
-                    <tr key={e.id} className="border-t border-paperline"><td className="py-1">{e.aluno}</td><td>{e.matricula}</td><td>{e.nome}</td></tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           )}
         </Card>
@@ -433,17 +510,56 @@ function TituloGrupo({ children }) {
 function ProfessorDashboard({ perfil, onSair }) {
   const [turmas] = useSharedList("turmas");
   const [pagina, setPagina] = useState("inicio");
+  const [alunosDisponiveis, setAlunosDisponiveis] = useState([]);
+  const [gerandoBackup, setGerandoBackup] = useState(false);
+  const [nomeUltimoBackup, setNomeUltimoBackup] = useState("");
+
+  useEffect(() => {
+    if (pagina !== "suporte" || !turmas) return;
+    (async () => {
+      const minhas = turmas.filter((t) => perfil.papel === "mestre" || t.professorUid === perfil.uid);
+      const listas = await Promise.all(minhas.map(async (t) => {
+        const r = await window.storage.get(`empresas_${t.id}`, true).catch(() => null);
+        return r ? JSON.parse(r.value) : [];
+      }));
+      setAlunosDisponiveis(listas.flat());
+    })();
+  }, [pagina, turmas, perfil]);
+
+  const fazerBackupManual = async () => {
+    setGerandoBackup(true);
+    try {
+      const nome = await gerarBackupZip();
+      setNomeUltimoBackup(nome);
+    } catch {
+      window.alert("Não foi possível gerar o backup agora.");
+    }
+    setGerandoBackup(false);
+  };
 
   const conteudo = () => {
     if (pagina === "turmas") return <GestaoTurmasView perfil={perfil} />;
     if (pagina === "usuarios") return <EmConstrucao titulo="Usuários" />;
-    if (pagina === "relatorios") return <EmConstrucao titulo="Relatórios" />;
-    if (pagina === "backup") return <EmConstrucao titulo="Backup" />;
+    if (pagina === "relatorios") return <Relatorios perfil={perfil} />;
+    if (pagina === "backup") return (
+      <div className="rounded-md p-6" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
+        <strong style={{ color: "#EDEAE0" }} className="block mb-2">Backup</strong>
+        <p className="text-sm mb-4" style={{ color: "#93A39F" }}>
+          Gera um arquivo <code>Backup_CI_&lt;data&gt;_&lt;hora&gt;.zip</code> com os dados de turmas e chamados.
+          O mesmo aviso também aparece automaticamente sempre que você sai do sistema.
+        </p>
+        <button onClick={fazerBackupManual} disabled={gerandoBackup} className="text-sm rounded px-4 py-2 disabled:opacity-50"
+          style={{ background: "#C79A56", color: "#2C1E0E", fontWeight: 500 }}>
+          {gerandoBackup ? "Gerando…" : "Gerar backup agora"}
+        </button>
+        {nomeUltimoBackup && <p className="text-xs mt-3" style={{ color: "#93A39F" }}>Baixado: {nomeUltimoBackup}</p>}
+      </div>
+    );
     if (pagina === "auditoria") return <EmConstrucao titulo="Auditoria" />;
-    if (pagina === "manual-professor") return <EmConstrucao titulo="Manual do Professor" />;
-    if (pagina === "manual-aluno") return <EmConstrucao titulo="Manual do Aluno" />;
-    if (pagina === "suporte") return <EmConstrucao titulo="Suporte" />;
-    if (pagina === "novidades") return <EmConstrucao titulo="Novidades" />;
+    if (pagina === "manual-professor") return <ManualProfessor />;
+    if (pagina === "manual-aluno") return <ManualAluno />;
+    if (pagina === "suporte") return <Suporte perfil={perfil} contexto={{ alunosDisponiveis }} />;
+    if (pagina === "novidades") return <Novidades />;
     if (pagina === "tutoriais") return <EmConstrucao titulo="Tutoriais" />;
 
     // Início
@@ -566,7 +682,7 @@ export default function App() {
   }
 
   if (perfil.papel === "professor" || perfil.papel === "mestre") {
-    return <ProfessorDashboard perfil={perfil} onSair={sair} />;
+    return <ProfessorDashboard perfil={perfil} onSair={sairComBackup} />;
   }
 
   // Aluno
@@ -574,7 +690,7 @@ export default function App() {
     return (
       <TelaInformarMatricula
         perfil={perfil}
-        onSair={sair}
+        onSair={sairComBackup}
         onEncontrado={async (r) => {
           const empresaSnap = await window.storage.get(`empresa_${r.empresaId}`, true);
           const empresa = empresaSnap ? JSON.parse(empresaSnap.value) : null;
@@ -583,5 +699,5 @@ export default function App() {
       />
     );
   }
-  return <AlunoWorkspace registro={registroAluno} onSair={sair} />;
+  return <AlunoWorkspace registro={registroAluno} perfil={perfil} onSair={sairComBackup} />;
 }

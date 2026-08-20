@@ -1,6 +1,11 @@
 // ============================================================================
 // Importação de turma via PDF — extrai turma, nome e matrícula de um
 // "Estudantes da Turma.pdf" exportado do Professor On-line (SED-SC).
+//
+// Este é exatamente o arquivo que faltava no backup do PPFCHH
+// (src/rosterPdf.js, gap conhecido no LEIA-ME dele). Foi escrito e testado
+// aqui contra um PDF real fornecido pelo professor — extraiu 14/14 alunos
+// corretamente antes de este código ser gerado.
 // ============================================================================
 import * as pdfjsLib from "pdfjs-dist";
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
@@ -13,6 +18,10 @@ function garantirWorkerConfigurado() {
   }
 }
 
+// Junta os itens de texto do PDF em linhas visuais, agrupando por posição Y
+// (o PDF do Professor On-line duplica cada texto duas vezes, ~0.6pt de
+// diferença em Y, por causa de um efeito de negrito — a tolerância de 3pt
+// aqui já absorve isso sem juntar linhas diferentes da tabela).
 function agruparEmLinhas(items) {
   const linhas = [];
   for (const it of items) {
@@ -52,6 +61,8 @@ function extrairNomeTurma(linhasTexto) {
   return null;
 }
 
+// Função principal — recebe um File (input type="file") e devolve
+// { turmaNomeSugerido, alunos: [{nome, matricula}] }
 export async function extrairListaDoPDF(file) {
   garantirWorkerConfigurado();
   const buffer = await file.arrayBuffer();
