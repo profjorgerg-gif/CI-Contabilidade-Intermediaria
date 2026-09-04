@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   LogOut, KeyRound, Building2, Users, GraduationCap, ShieldCheck,
   LayoutGrid, FileBarChart, Save, History, BookOpen, LifeBuoy, Megaphone, Video, ChevronRight,
+  ClipboardList, MessageSquare, TrendingUp,
 } from "lucide-react";
 import { auth, observarSessao, entrarComGoogle, sair, traduzErroAuth, CODIGO_MESTRE } from "./lib/firebaseAuth";
 import { definirUsuarioAtual, configPronta } from "./lib/firebaseApp";
@@ -150,63 +151,80 @@ function TelaLogin({ user, onConcluido }) {
   };
 
   return (
-    <div style={{ background: "#14201F" }} className="min-h-screen flex items-center justify-center p-6">
-      <div className="max-w-lg w-full rounded-lg p-9" style={{ background: "#1A2827" }}>
-        <div className="flex items-center gap-2 mb-2">
-          <GraduationCap size={16} style={{ color: "#C79A56" }} />
-          <span className="text-xs tracking-wide" style={{ color: "#C79A56" }}>CEDUP HERMANN HERING</span>
-        </div>
-        <h1 className="font-serif text-3xl mb-2" style={{ color: "#EDEAE0" }}>CI — Contabilidade Intermediária</h1>
-        <p className="text-sm mb-6" style={{ color: "#93A39F" }}>
-          Onze módulos guiados, da teoria ao lançamento, dentro da mesma empresa fictícia — resultado real acumulado a cada etapa.
-        </p>
-
-        <div className="rounded-md p-5" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
-          <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "#93A39F" }}>Perfil de acesso</div>
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setPerfilEscolhido("aluno")}
-              className="flex-1 text-sm rounded px-3 py-2"
-              style={perfilEscolhido === "aluno"
-                ? { background: "#C79A56", color: "#2C1E0E", fontWeight: 500 }
-                : { border: "1px solid #33443F", color: "#93A39F" }}
-            >
-              Aluno(a)
-            </button>
-            <button
-              onClick={() => setPerfilEscolhido("professor")}
-              className="flex-1 text-sm rounded px-3 py-2"
-              style={perfilEscolhido === "professor"
-                ? { background: "#C79A56", color: "#2C1E0E", fontWeight: 500 }
-                : { border: "1px solid #33443F", color: "#93A39F" }}
-            >
-              Professor(a)
-            </button>
+    <div style={{ background: "#14201F" }} className="min-h-screen flex flex-col">
+      <div style={{ height: 3, background: "#C79A56" }} />
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="max-w-4xl w-full flex flex-wrap gap-8 items-center justify-between">
+          <div style={{ maxWidth: 380 }}>
+            <div className="text-xs tracking-wide mb-2" style={{ color: "#C79A56" }}>
+              CEDUP HERMANN HERING · Curso Técnico em Contabilidade
+            </div>
+            <h1 className="font-serif text-3xl mb-3" style={{ color: "#EDEAE0", lineHeight: 1.2 }}>
+              CI — Contabilidade Intermediária, do jeito que se aprende fazendo.
+            </h1>
+            <p className="text-sm mb-4" style={{ color: "#93A39F" }}>
+              Módulos, simuladores e estudos de caso corrigidos em tempo real, dentro da empresa fictícia da turma.
+            </p>
+            <div className="space-y-2 text-sm" style={{ color: "#C7CFCC" }}>
+              <div className="flex items-center gap-2"><ClipboardList size={15} style={{ color: "#C79A56" }} />11 módulos guiados, da teoria à prática</div>
+              <div className="flex items-center gap-2"><MessageSquare size={15} style={{ color: "#C79A56" }} />Correção do professor a cada etapa</div>
+              <div className="flex items-center gap-2"><TrendingUp size={15} style={{ color: "#C79A56" }} />Progresso e notas atualizados em tempo real</div>
+            </div>
           </div>
 
-          {perfilEscolhido === "professor" && (
-            <input
-              value={codigoMestre} onChange={(e) => setCodigoMestre(e.target.value)}
-              placeholder="Código de Usuário Mestre (opcional)"
-              className="w-full text-sm rounded px-3 py-2 mb-4"
-              style={{ background: "#14201F", border: "1px solid #33443F", color: "#EDEAE0" }}
-            />
-          )}
+          <div className="rounded-lg p-6" style={{ background: "#1E302E", borderTop: "3px solid #C79A56", minWidth: 300, maxWidth: 340 }}>
+            <h2 className="font-serif text-lg mb-1" style={{ color: "#EDEAE0" }}>Entrar na plataforma</h2>
+            <p className="text-xs mb-4" style={{ color: "#93A39F" }}>Acesse com sua conta para continuar seus estudos.</p>
 
-          <p className="text-xs mb-4" style={{ color: "#6E7E7A" }}>
-            Só é usado na primeira vez que esta conta entra no sistema. Depois disso, o perfil só pode ser alterado por um Usuário Mestre, no painel de Usuários.
-          </p>
+            <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "#93A39F" }}>Perfil de acesso</div>
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setPerfilEscolhido("aluno")}
+                className="flex-1 text-sm rounded px-3 py-2"
+                style={perfilEscolhido === "aluno"
+                  ? { background: "#C79A56", color: "#2C1E0E", fontWeight: 500 }
+                  : { border: "1px solid #33443F", color: "#93A39F" }}
+              >
+                Aluno(a)
+              </button>
+              <button
+                onClick={() => setPerfilEscolhido("professor")}
+                className="flex-1 text-sm rounded px-3 py-2"
+                style={perfilEscolhido === "professor"
+                  ? { background: "#C79A56", color: "#2C1E0E", fontWeight: 500 }
+                  : { border: "1px solid #33443F", color: "#93A39F" }}
+              >
+                Professor(a) / Admin
+              </button>
+            </div>
 
-          <button
-            onClick={continuar} disabled={entrando}
-            className="w-full text-sm rounded px-3 py-2.5 flex items-center justify-center gap-2 disabled:opacity-50"
-            style={{ background: "#2E4643", border: "1px solid #45605B", color: "#EDEAE0" }}
-          >
-            {entrando ? "Entrando…" : "Continuar com Google"}
-          </button>
-          {erro && <p className="text-sm mt-3" style={{ color: "#E08A8A" }}>{erro}</p>}
-          <p className="text-[10px] text-center mt-3" style={{ color: "#6E7E7A" }}>Autenticado via Firebase — somente conta Google.</p>
+            {perfilEscolhido === "professor" && (
+              <input
+                value={codigoMestre} onChange={(e) => setCodigoMestre(e.target.value)}
+                placeholder="Código de Usuário Mestre (opcional)"
+                className="w-full text-sm rounded px-3 py-2 mb-3"
+                style={{ background: "#14201F", border: "1px solid #33443F", color: "#EDEAE0" }}
+              />
+            )}
+
+            <button
+              onClick={continuar} disabled={entrando}
+              className="w-full text-sm rounded px-3 py-2.5 flex items-center justify-center gap-2 disabled:opacity-50 mb-3"
+              style={{ background: "#2E4643", border: "1px solid #45605B", color: "#EDEAE0" }}
+            >
+              {entrando ? "Entrando…" : "Continuar com Google"}
+            </button>
+            {erro && <p className="text-sm mb-3" style={{ color: "#E08A8A" }}>{erro}</p>}
+
+            <p className="text-[10px] leading-relaxed" style={{ color: "#6E7E7A" }}>
+              Alunos e professores: sua conta já deve ter sido cadastrada pelo Administrador com sua matrícula.
+              Só é pedida na primeira vez — depois, o perfil só é alterado por um Usuário Mestre.
+            </p>
+          </div>
         </div>
+      </div>
+      <div className="text-center text-[10px] py-4" style={{ color: "#5C6E69", borderTop: "1px solid #26332F" }}>
+        © 2026 Jorge Lima Cardoso. Todos os direitos reservados. Plataforma didática desenvolvida para o CEDUP Hermann Hering — Curso Técnico em Contabilidade.
       </div>
     </div>
   );
