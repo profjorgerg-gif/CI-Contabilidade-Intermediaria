@@ -435,8 +435,7 @@ export const MODULES = [
     "desc": "Compra, venda, devolução e tributos incidentes sobre operações com mercadorias.",
     "tabs": [
       "Teoria",
-      "Simulador de Lançamentos",
-      "Estudo de Caso"
+      "Simulador de Lançamentos"
     ]
   },
   {
@@ -504,10 +503,16 @@ export const MODULES = [
   {
     "id": "m11",
     "code": "11.0",
-    "title": "Estudos de Caso",
-    "desc": "Casos integrados cobrindo múltiplos temas da disciplina em uma mesma empresa fictícia.",
+    "title": "Relatórios",
+    "desc": "Consolidação de toda a trajetória contábil da empresa — do Livro Diário ao Balanço Patrimonial, com base nos dados que você mesmo lançou.",
     "tabs": [
-      "Casos"
+      "Livro Diário",
+      "Livro Razão",
+      "Balancete",
+      "Posição de Estoques",
+      "Operações Financeiras",
+      "DRE",
+      "Balanço Patrimonial"
     ]
   }
 ];

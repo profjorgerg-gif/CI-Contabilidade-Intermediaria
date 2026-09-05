@@ -4,7 +4,6 @@ import { Card, Botao } from "./ModuloUI";
 
 const MODULOS_AVALIADOS = [
   { id: "m7", label: "7.0 — Créditos Vencidos e Não Liquidados" },
-  { id: "m11", label: "11.0 — Estudos de Caso" },
 ];
 
 async function carregarCaso(empresaId, moduleId) {

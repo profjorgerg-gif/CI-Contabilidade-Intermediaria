@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { calcularDRE, calcularDLPA, calcularProvisaoPECLD } from "../lib/calculosFinanceiros";
+import { calcularDRECompleta, calcularDLPA, calcularProvisaoPECLD } from "../lib/calculosFinanceiros";
 import { fmt } from "../lib/simuladorEngine";
 import { CREDITOS_M7, M8_PERCENTUAIS_PADRAO, M9_DADOS_PADRAO } from "../data/moduleData";
 import { Card } from "./ModuloUI";
@@ -31,7 +31,7 @@ async function carregarDados(empresaId) {
     contarLancamentos(empresaId, "m8"), contarLancamentos(empresaId, "m10"),
   ]);
 
-  const dre = await calcularDRE(empresaId);
+  const dre = await calcularDRECompleta(empresaId);
   const percentuaisR = await window.storage.get(`m8_percentuais_${empresaId}`, true).catch(() => null);
   const percentuais = percentuaisR ? JSON.parse(percentuaisR.value) : M8_PERCENTUAIS_PADRAO;
   const provisao = calcularProvisaoPECLD(CREDITOS_M7, percentuais);
@@ -45,20 +45,13 @@ async function carregarDados(empresaId) {
     notaMediaExercicio(empresaId, "m3", "pareamento"),
   ]);
 
-  const [caso4, caso7, caso11] = await Promise.all([
-    window.storage.get(`m4_resposta_caso_${empresaId}`, true).catch(() => null),
-    statusCaso(empresaId, "m7", "caso_avaliado"),
-    statusCaso(empresaId, "m11", "caso_avaliado"),
-  ]);
+  const caso7 = await statusCaso(empresaId, "m7", "caso_avaliado");
 
   return {
     lancamentos: { m4, m6, m8, m10 },
     dre, provisao, dlpa,
     exercicios: { m1: ex1, m2: ex2, m3: ex3 },
-    casos: {
-      m4: caso4 ? !!(JSON.parse(caso4.value) || "").trim?.() : false,
-      m7: caso7, m11: caso11,
-    },
+    casos: { m7: caso7 },
   };
 }
 
@@ -110,7 +103,7 @@ export function DashboardEmpresa({ empresaId, nomeEmpresa }) {
   if (!empresaId) return <Card><p className="text-sm text-inksoft">Selecione uma empresa para ver o painel.</p></Card>;
   if (!dados) return <p className="text-sm text-inksoft">Carregando painel…</p>;
 
-  const resultado = dados.dre.resultadoParcial;
+  const resultado = dados.dre.lucroLiquido;
   const maxLanc = Math.max(dados.lancamentos.m4, dados.lancamentos.m6, dados.lancamentos.m8, dados.lancamentos.m10, 1);
 
   return (
@@ -130,7 +123,7 @@ export function DashboardEmpresa({ empresaId, nomeEmpresa }) {
       <Card>
         <strong className="block mb-3">Resultado financeiro</strong>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="border border-paperline rounded-sm p-3"><div className="text-xs text-inksoft">Receita Bruta</div><div className="font-serif text-lg">R$ {fmt(dados.dre.receitaBruta)}</div></div>
+          <div className="border border-paperline rounded-sm p-3"><div className="text-xs text-inksoft">Receita Bruta</div><div className="font-serif text-lg">R$ {fmt(dados.dre.totalReceitaBruta)}</div></div>
           <div className="border border-paperline rounded-sm p-3"><div className="text-xs text-inksoft">Lucro Bruto</div><div className="font-serif text-lg">R$ {fmt(dados.dre.lucroBruto)}</div></div>
           <div className="border border-paperline rounded-sm p-3"><div className="text-xs text-inksoft">Provisão PECLD</div><div className="font-serif text-lg">R$ {fmt(dados.provisao.total)}</div></div>
           <div className="border border-paperline rounded-sm p-3"><div className="text-xs text-inksoft">Lucros Acumulados (DLPA)</div><div className="font-serif text-lg">R$ {fmt(dados.dlpa.saldoFinal)}</div></div>
@@ -153,10 +146,8 @@ export function DashboardEmpresa({ empresaId, nomeEmpresa }) {
       </Card>
 
       <Card>
-        <strong className="block mb-1">Estudos de caso</strong>
-        <BadgeStatusCaso label="4.0 — Fechamento do mês" dados={dados.casos.m4} />
+        <strong className="block mb-1">Estudo de caso avaliado</strong>
         <BadgeStatusCaso label="7.0 — Créditos vencidos" dados={dados.casos.m7} />
-        <BadgeStatusCaso label="11.0 — Caso integrado" dados={dados.casos.m11} />
       </Card>
     </div>
   );

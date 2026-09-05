@@ -2,7 +2,7 @@ import React from "react";
 import { MODULES, EMPRESA } from "../data/moduleData";
 import {
   TEORIA_M1_HTML, TEORIA_M2_HTML, ESTRUTURA_M3_HTML,
-  TEORIA_M4_HTML, CASO_M4_HTML, CONTAS_M4, EVENTOS_M4,
+  TEORIA_M4_HTML, CONTAS_M4, EVENTOS_M4,
   TEORIA_M5_HTML,
   TEORIA_M6_HTML, CONTAS_M6, EVENTOS_M6,
   TEORIA_M7_HTML, CASO_M7_HTML,
@@ -10,11 +10,12 @@ import {
   TEORIA_M9_HTML,
   TEORIA_M10_HTML, CONTAS_M10, EVENTOS_M10,
 } from "../data/moduleData";
-import { TeoriaCard, SimuladorLancamentos, EstudoDeCaso, EstudoDeCasoAvaliado } from "./ModuloUI";
+import { TeoriaCard, SimuladorLancamentos, EstudoDeCasoAvaliado } from "./ModuloUI";
 import {
   ConsultaPlanoContas, CalculadoraDepreciacao, CalculadoraProvisao,
-  MontagemDRE, MontagemDLPA, PainelConsolidadoM11,
+  MontagemDRE, MontagemDLPA,
 } from "./Modulos";
+import { paineisModulo11 } from "./Relatorios11";
 import { ExercicioMultiplaEscolha, ExercicioPareamento } from "./Exercicios";
 import { EXERCICIOS_M1 } from "../data/exerciciosM1";
 import { EXERCICIOS_M2 } from "../data/exerciciosM2";
@@ -37,7 +38,6 @@ function paineisDoModulo(moduleId, empresaId) {
       return [
         <TeoriaCard html={TEORIA_M4_HTML} />,
         <SimuladorLancamentos empresaId={empresaId} moduleId="m4" contas={CONTAS_M4} eventos={EVENTOS_M4} notaEmpresa={NOTA_EMPRESA} />,
-        <EstudoDeCaso empresaId={empresaId} moduleId="m4" html={CASO_M4_HTML} />,
       ];
     case "m5":
       return [<TeoriaCard html={TEORIA_M5_HTML} />, <MontagemDRE empresaId={empresaId} />];
@@ -63,7 +63,7 @@ function paineisDoModulo(moduleId, empresaId) {
         <SimuladorLancamentos empresaId={empresaId} moduleId="m10" contas={CONTAS_M10} eventos={EVENTOS_M10} notaEmpresa={`Lançamentos de operações financeiras da <strong>${EMPRESA.nome}</strong>.`} />,
       ];
     case "m11":
-      return [<PainelConsolidadoM11 empresaId={empresaId} />];
+      return paineisModulo11(empresaId);
     default:
       return [<p>Módulo não encontrado.</p>];
   }

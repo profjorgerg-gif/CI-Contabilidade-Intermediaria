@@ -1,23 +1,6 @@
 import React from "react";
 import { Card, Botao } from "./ModuloUI";
-
-// Abre uma janela só com o conteúdo do manual e aciona a impressão do
-// navegador — a pessoa escolhe "Salvar como PDF" como destino, gerando um
-// arquivo PDF de verdade sem precisar de nenhuma biblioteca extra.
-function imprimirComoPdf(titulo, html) {
-  const janela = window.open("", "_blank");
-  janela.document.write(`
-    <html><head><title>${titulo}</title>
-    <style>
-      body{font-family:Georgia,serif;color:#1C2B2D;max-width:720px;margin:40px auto;line-height:1.5;}
-      h1{font-size:22px;} h2{font-size:16px;border-bottom:1px solid #DCD6C6;padding-bottom:4px;margin-top:28px;}
-      li{margin-bottom:4px;font-size:14px;}
-    </style></head><body>${html}</body></html>
-  `);
-  janela.document.close();
-  janela.focus();
-  setTimeout(() => janela.print(), 300);
-}
+import { imprimirComoPdf } from "../lib/imprimir";
 
 const CONTEUDO_PROFESSOR = `
   <h1>Manual do Professor — CI Contabilidade Intermediária</h1>

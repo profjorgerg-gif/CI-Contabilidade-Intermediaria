@@ -4,7 +4,7 @@ import {
   CREDITOS_M7, M8_PERCENTUAIS_PADRAO, M9_DADOS_PADRAO,
   EVENTOS_M2,
 } from "../data/moduleData";
-import { calcularDRE, calcularDLPA, calcularProvisaoPECLD, tabelaDepreciacaoLinear } from "../lib/calculosFinanceiros";
+import { calcularDRECompleta, calcularDLPA, calcularProvisaoPECLD, tabelaDepreciacaoLinear } from "../lib/calculosFinanceiros";
 import { fmt } from "../lib/simuladorEngine";
 import { Card, Botao } from "./ModuloUI";
 
@@ -182,36 +182,75 @@ export function CalculadoraProvisao({ empresaId }) {
 // ============================================================================
 // Módulo 5.0 — DRE (montagem automática a partir dos módulos 4.0 e 6.0)
 // ============================================================================
-export function MontagemDRE({ empresaId }) {
-  const [dre, setDre] = useState(null);
-  useEffect(() => { calcularDRE(empresaId).then(setDre); }, [empresaId]);
-  if (!dre) return <p className="text-sm text-inksoft">Carregando…</p>;
-  const semDados = dre.receitaBruta === 0 && dre.cmv === 0;
+// ============================================================================
+// Visualização da DRE completa — reaproveitada nos Módulos 5.0 e 11.0.
+// Mostra todas as contas de cada grupo, mesmo com saldo zero; a opção
+// "Simplificar DRE" oculta as linhas zeradas.
+// ============================================================================
+export function VisualizacaoDRE({ dre }) {
+  const [simplificar, setSimplificar] = useState(false);
+
   return (
     <Card>
-      <strong className="block mb-3">DRE simplificada</strong>
-      {semDados && <p className="text-sm text-inksoft mb-3">Nenhum dado encontrado ainda. Volte ao Módulo 4.0 e lance os eventos de venda para ver a DRE ser montada automaticamente aqui.</p>}
+      <div className="flex justify-between items-center mb-3">
+        <strong>Demonstração do Resultado do Exercício</strong>
+        <label className="flex items-center gap-2 text-xs text-inksoft">
+          <input type="checkbox" checked={simplificar} onChange={(e) => setSimplificar(e.target.checked)} />
+          Simplificar DRE
+        </label>
+      </div>
       <table className="w-full text-sm">
         <tbody>
-          <tr><td>Receita Bruta de Vendas</td><td>R$ {fmt(dre.receitaBruta)}</td></tr>
-          <tr><td>(-) Devoluções de Vendas</td><td>R$ {fmt(dre.deducoes)}</td></tr>
-          <tr className="border-t border-paperline"><td><strong>= Receita Líquida</strong></td><td><strong>R$ {fmt(dre.receitaLiquida)}</strong></td></tr>
-          <tr><td>(-) Custo das Mercadorias Vendidas (CMV)</td><td>R$ {fmt(dre.cmv)}</td></tr>
-          <tr className="border-t border-paperline"><td><strong>= Lucro Bruto</strong></td><td><strong>R$ {fmt(dre.lucroBruto)}</strong></td></tr>
-          <tr><td>(-) Despesa de Depreciação</td><td>R$ {fmt(dre.depreciacao)}</td></tr>
-          <tr className="border-t border-paperline"><td><strong>= Resultado parcial</strong></td><td><strong>R$ {fmt(dre.resultadoParcial)}</strong></td></tr>
+          {dre.grupos.map((g, i) => {
+            if (g.subtotal) {
+              return (
+                <tr key={i} className="border-t border-paperline">
+                  <td className="py-1.5"><strong>{g.subtotal}</strong></td>
+                  <td className={`text-right ${g.valor < 0 ? "text-alert" : ""}`}><strong>R$ {fmt(g.valor)}</strong></td>
+                </tr>
+              );
+            }
+            const linhasVisiveis = simplificar ? g.linhas.filter((l) => l.saldo !== 0) : g.linhas;
+            if (simplificar && linhasVisiveis.length === 0) return null;
+            return (
+              <React.Fragment key={i}>
+                <tr className="border-t border-paperline"><td colSpan={2} className="pt-2 pb-0.5 text-xs uppercase tracking-wide text-inksoft">{g.titulo}</td></tr>
+                {linhasVisiveis.map((l) => (
+                  <tr key={l.codigo}>
+                    <td className="pl-4 text-inksoft">{l.codigo} — {l.nome}</td>
+                    <td className="text-right">R$ {fmt(l.saldo)}</td>
+                  </tr>
+                ))}
+                <tr><td className="pl-4 text-xs text-inksoft">Subtotal</td><td className="text-right text-xs text-inksoft">R$ {fmt(g.total)}</td></tr>
+              </React.Fragment>
+            );
+          })}
         </tbody>
       </table>
-      <p className="text-xs text-inksoft mt-3">DRE simplificada — reflete apenas as contas já lançadas nos módulos 4.0 e 6.0.</p>
+    </Card>
+  );
+}
+
+export function MontagemDRE({ empresaId }) {
+  const [dre, setDre] = useState(null);
+  useEffect(() => { calcularDRECompleta(empresaId).then(setDre); }, [empresaId]);
+  if (!dre) return <p className="text-sm text-inksoft">Carregando…</p>;
+  const semDados = dre.totalReceitaBruta === 0;
+  return (
+    <div>
+      {semDados && (
+        <Card><p className="text-sm text-inksoft">Nenhum dado encontrado ainda. Volte ao Módulo 4.0 e lance os eventos de venda para ver a DRE ser montada automaticamente aqui.</p></Card>
+      )}
+      <VisualizacaoDRE dre={dre} />
       {!semDados && (
-        <div className="text-xs text-inksoft bg-ledgersoft border-l-2 border-ledger px-3 py-2 mt-3">
+        <div className="text-xs text-inksoft bg-ledgersoft border-l-2 border-ledger px-3 py-2">
           <strong>Analise o resultado acima.</strong> Os valores fazem sentido para a operação da Nova Aurora?
-          Se algum número parecer incorreto ou incompleto (por exemplo, um lançamento com a conta errada), volte
-          ao Módulo 4.0 (Operações com Mercadorias) ou ao Módulo 6.0 (Ativo Imobilizado) para corrigir ou
-          completar os lançamentos — a DRE aqui é recalculada automaticamente a cada alteração.
+          Se algum número parecer incorreto ou incompleto, volte aos módulos de lançamento (4.0, 6.0, 8.0 ou
+          10.0) para corrigir ou completar os lançamentos — a DRE aqui é recalculada automaticamente a cada
+          alteração.
         </div>
       )}
-    </Card>
+    </div>
   );
 }
 
@@ -308,104 +347,5 @@ export function ExercicioRegimes() {
         );
       })}
     </Card>
-  );
-}
-
-// ============================================================================
-// Módulo 11.0 — Painel consolidado + caso integrado
-// ============================================================================
-export function PainelConsolidadoM11({ empresaId }) {
-  const chave = `m11_caso_avaliado_${empresaId}`;
-  const [dadosPainel, setDadosPainel] = useState(null);
-  const [caso, setCaso] = useState(null);
-  const [texto, setTexto] = useState("");
-  const [status, setStatus] = useState("");
-
-  useEffect(() => {
-    (async () => {
-      const dre = await calcularDRE(empresaId);
-      const percentuaisR = await window.storage.get(`m8_percentuais_${empresaId}`, true).catch(() => null);
-      const percentuais = percentuaisR ? JSON.parse(percentuaisR.value) : M8_PERCENTUAIS_PADRAO;
-      const provisao = calcularProvisaoPECLD(CREDITOS_M7, percentuais);
-      const dlpaParamsR = await window.storage.get(`m9_dlpa_${empresaId}`, true).catch(() => null);
-      const dlpaParams = dlpaParamsR ? JSON.parse(dlpaParamsR.value) : M9_DADOS_PADRAO;
-      const dlpa = await calcularDLPA(empresaId, dlpaParams);
-      setDadosPainel({ dre, provisao, dlpa });
-
-      const r = await window.storage.get(chave, true).catch(() => null);
-      const valor = r ? JSON.parse(r.value) : { texto: "", status: "rascunho" };
-      setCaso(valor);
-      setTexto(valor.texto || "");
-    })();
-  }, [empresaId, chave]);
-
-  const salvarRascunho = async () => {
-    const novo = { ...caso, texto, status: "rascunho" };
-    setCaso(novo);
-    await window.storage.set(chave, JSON.stringify(novo), true);
-    setStatus("Salvo ✓");
-    setTimeout(() => setStatus(""), 1400);
-  };
-
-  const enviar = async () => {
-    if (!texto.trim()) return;
-    const novo = { ...caso, texto, status: "enviado", enviadoEm: Date.now() };
-    setCaso(novo);
-    await window.storage.set(chave, JSON.stringify(novo), true);
-  };
-
-  if (!dadosPainel || !caso) return <p className="text-sm text-inksoft">Carregando…</p>;
-  const bloqueado = caso.status === "enviado" || caso.status === "corrigido";
-
-  return (
-    <div>
-      <Card>
-        <strong className="block mb-2">Painel consolidado</strong>
-        <p className="text-xs text-inksoft mb-3">Estes números vêm diretamente dos lançamentos e cálculos que você já fez nos módulos anteriores.</p>
-        <table className="w-full text-sm">
-          <tbody>
-            <tr><td>Receita Bruta de Vendas (Mód. 4.0)</td><td>R$ {fmt(dadosPainel.dre.receitaBruta)}</td></tr>
-            <tr><td>Lucro Bruto (Mód. 5.0)</td><td>R$ {fmt(dadosPainel.dre.lucroBruto)}</td></tr>
-            <tr><td>Resultado parcial do exercício (Mód. 5.0)</td><td>R$ {fmt(dadosPainel.dre.resultadoParcial)}</td></tr>
-            <tr><td>Provisão para PECLD constituída (Mód. 8.0)</td><td>R$ {fmt(dadosPainel.provisao.total)}</td></tr>
-            <tr><td>Saldo final de Lucros Acumulados (Mód. 9.0)</td><td>R$ {fmt(dadosPainel.dlpa.saldoFinal)}</td></tr>
-          </tbody>
-        </table>
-      </Card>
-      <Card>
-        <strong className="block mb-2">Caso integrado — Reunião de sócios</strong>
-        <p className="text-sm text-inksoft mb-2">
-          Os sócios vão se reunir para avaliar o desempenho do período e decidir sobre a distribuição de
-          dividendos. Com base no painel acima e no que você lançou nos módulos anteriores, escreva uma
-          reflexão/síntese da situação da empresa, respondendo:
-        </p>
-        <ol className="text-sm text-inksoft list-decimal pl-5 space-y-1">
-          <li>A empresa teve lucro ou prejuízo no período? O resultado parcial é suficiente para sustentar a política de dividendos definida no Módulo 9.0?</li>
-          <li>Que impacto a provisão para PECLD (Módulo 8.0) teve sobre o resultado, mesmo sem representar uma perda efetiva e definitiva?</li>
-          <li>Se a Auto Peças Rio Ltda. (Módulo 8.0) não tivesse quitado o título, qual seria a diferença no saldo final de Lucros Acumulados?</li>
-          <li>Que outras contas do plano oficial (Módulo 3.0) ainda não foram usadas em nenhum módulo, mas poderiam aparecer numa operação real da empresa?</li>
-        </ol>
-        <textarea value={texto} onChange={(e) => setTexto(e.target.value)} disabled={bloqueado} placeholder="Escreva sua reflexão/síntese aqui..."
-          className="w-full min-h-[160px] mt-3 border border-paperline rounded-sm px-3 py-2 text-sm disabled:bg-paper" />
-        {!bloqueado && (
-          <div className="mt-2 flex items-center gap-3">
-            <Botao secondary onClick={salvarRascunho}>Salvar rascunho</Botao>
-            <Botao onClick={enviar} disabled={!texto.trim()}>Enviar para correção</Botao>
-            {status && <span className="text-xs text-ledger">{status}</span>}
-          </div>
-        )}
-        {caso.status === "enviado" && (
-          <p className="text-sm text-inksoft mt-3 bg-ledgersoft border-l-2 border-ledger px-3 py-2">
-            Enviado para o professor em {new Date(caso.enviadoEm).toLocaleString("pt-BR")}. Aguardando correção.
-          </p>
-        )}
-        {caso.status === "corrigido" && (
-          <div className="text-sm mt-3 bg-ledgersoft border-l-2 border-ledger px-3 py-2">
-            <strong>Nota: {caso.nota}/10</strong>
-            {caso.feedback && <p className="mt-1 text-inksoft">{caso.feedback}</p>}
-          </div>
-        )}
-      </Card>
-    </div>
   );
 }
