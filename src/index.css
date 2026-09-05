@@ -66,3 +66,17 @@ body {
 .teoria-conteudo p { margin: 0 0 10px; }
 .teoria-conteudo ol, .teoria-conteudo ul { padding-left: 18px; color: #5B6B6C; font-size: 13.5px; }
 
+/* ============================================================
+   Tabelas em telas estreitas (celular) — em vez de espremer as
+   colunas até ficar ilegível, a tabela vira rolável na horizontal.
+   ============================================================ */
+@media (max-width: 640px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+

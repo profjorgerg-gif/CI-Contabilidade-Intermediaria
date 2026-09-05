@@ -129,7 +129,7 @@ export function DashboardEmpresa({ empresaId, nomeEmpresa }) {
 
       <Card>
         <strong className="block mb-3">Resultado financeiro</strong>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="border border-paperline rounded-sm p-3"><div className="text-xs text-inksoft">Receita Bruta</div><div className="font-serif text-lg">R$ {fmt(dados.dre.receitaBruta)}</div></div>
           <div className="border border-paperline rounded-sm p-3"><div className="text-xs text-inksoft">Lucro Bruto</div><div className="font-serif text-lg">R$ {fmt(dados.dre.lucroBruto)}</div></div>
           <div className="border border-paperline rounded-sm p-3"><div className="text-xs text-inksoft">Provisão PECLD</div><div className="font-serif text-lg">R$ {fmt(dados.provisao.total)}</div></div>

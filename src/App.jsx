@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   LogOut, KeyRound, Building2, Users, GraduationCap, ShieldCheck,
   LayoutGrid, FileBarChart, Save, History, BookOpen, LifeBuoy, Megaphone, Video, ChevronRight,
-  ClipboardList, MessageSquare, TrendingUp,
+  ClipboardList, MessageSquare, TrendingUp, Menu, X,
 } from "lucide-react";
 import { auth, observarSessao, entrarComGoogle, sair, traduzErroAuth, CODIGO_MESTRE } from "./lib/firebaseAuth";
 import { definirUsuarioAtual, configPronta } from "./lib/firebaseApp";
@@ -153,34 +153,34 @@ function TelaLogin({ user, onConcluido }) {
   return (
     <div style={{ background: "#14201F" }} className="min-h-screen flex flex-col">
       <div style={{ height: 4, background: "#C79A56" }} />
-      <div className="flex-1 flex items-center justify-center px-10 py-12">
-        <div className="max-w-6xl w-full flex flex-wrap gap-16 items-center justify-center">
-          <div style={{ maxWidth: 520 }}>
-            <div className="text-sm tracking-wide mb-4" style={{ color: "#C79A56" }}>
+      <div className="flex-1 flex items-center justify-center px-5 sm:px-10 py-8 sm:py-12">
+        <div className="max-w-6xl w-full flex flex-wrap gap-10 sm:gap-16 items-center justify-center">
+          <div className="max-w-full sm:max-w-[520px]">
+            <div className="text-xs sm:text-sm tracking-wide mb-3 sm:mb-4" style={{ color: "#C79A56" }}>
               CEDUP HERMANN HERING · Curso Técnico em Contabilidade
             </div>
-            <h1 className="font-serif text-5xl mb-5" style={{ color: "#EDEAE0", lineHeight: 1.2 }}>
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl mb-4 sm:mb-5" style={{ color: "#EDEAE0", lineHeight: 1.2 }}>
               CI — Contabilidade Intermediária, do jeito que se aprende fazendo.
             </h1>
-            <p className="text-base mb-6" style={{ color: "#93A39F" }}>
+            <p className="text-sm sm:text-base mb-5 sm:mb-6" style={{ color: "#93A39F" }}>
               Módulos, simuladores e estudos de caso corrigidos em tempo real, dentro da empresa fictícia da turma.
             </p>
-            <div className="space-y-3 text-base" style={{ color: "#C7CFCC" }}>
-              <div className="flex items-center gap-3"><ClipboardList size={20} style={{ color: "#C79A56" }} />11 módulos guiados, da teoria à prática</div>
-              <div className="flex items-center gap-3"><MessageSquare size={20} style={{ color: "#C79A56" }} />Correção do professor a cada etapa</div>
-              <div className="flex items-center gap-3"><TrendingUp size={20} style={{ color: "#C79A56" }} />Progresso e notas atualizados em tempo real</div>
+            <div className="space-y-2.5 sm:space-y-3 text-sm sm:text-base" style={{ color: "#C7CFCC" }}>
+              <div className="flex items-center gap-3"><ClipboardList size={18} className="shrink-0" style={{ color: "#C79A56" }} />11 módulos guiados, da teoria à prática</div>
+              <div className="flex items-center gap-3"><MessageSquare size={18} className="shrink-0" style={{ color: "#C79A56" }} />Correção do professor a cada etapa</div>
+              <div className="flex items-center gap-3"><TrendingUp size={18} className="shrink-0" style={{ color: "#C79A56" }} />Progresso e notas atualizados em tempo real</div>
             </div>
           </div>
 
-          <div className="rounded-lg p-9" style={{ background: "#1E302E", borderTop: "4px solid #C79A56", minWidth: 400, maxWidth: 440 }}>
-            <h2 className="font-serif text-2xl mb-2" style={{ color: "#EDEAE0" }}>Entrar na plataforma</h2>
-            <p className="text-sm mb-6" style={{ color: "#93A39F" }}>Acesse com sua conta para continuar seus estudos.</p>
+          <div className="rounded-lg p-6 sm:p-9 w-full sm:w-auto sm:min-w-[380px] sm:max-w-[440px]" style={{ background: "#1E302E", borderTop: "4px solid #C79A56" }}>
+            <h2 className="font-serif text-xl sm:text-2xl mb-2" style={{ color: "#EDEAE0" }}>Entrar na plataforma</h2>
+            <p className="text-sm mb-5 sm:mb-6" style={{ color: "#93A39F" }}>Acesse com sua conta para continuar seus estudos.</p>
 
             <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "#93A39F" }}>Perfil de acesso</div>
-            <div className="flex gap-3 mb-6">
+            <div className="flex gap-3 mb-5 sm:mb-6">
               <button
                 onClick={() => setPerfilEscolhido("aluno")}
-                className="flex-1 text-base rounded px-4 py-3"
+                className="flex-1 text-sm sm:text-base rounded px-3 sm:px-4 py-2.5 sm:py-3"
                 style={perfilEscolhido === "aluno"
                   ? { background: "#C79A56", color: "#2C1E0E", fontWeight: 500 }
                   : { border: "1px solid #33443F", color: "#93A39F" }}
@@ -189,7 +189,7 @@ function TelaLogin({ user, onConcluido }) {
               </button>
               <button
                 onClick={() => setPerfilEscolhido("professor")}
-                className="flex-1 text-base rounded px-4 py-3"
+                className="flex-1 text-sm sm:text-base rounded px-3 sm:px-4 py-2.5 sm:py-3"
                 style={perfilEscolhido === "professor"
                   ? { background: "#C79A56", color: "#2C1E0E", fontWeight: 500 }
                   : { border: "1px solid #33443F", color: "#93A39F" }}
@@ -202,14 +202,14 @@ function TelaLogin({ user, onConcluido }) {
               <input
                 value={codigoMestre} onChange={(e) => setCodigoMestre(e.target.value)}
                 placeholder="Código de Usuário Mestre (opcional)"
-                className="w-full text-base rounded px-4 py-3 mb-4"
+                className="w-full text-sm sm:text-base rounded px-3 sm:px-4 py-2.5 sm:py-3 mb-4"
                 style={{ background: "#14201F", border: "1px solid #33443F", color: "#EDEAE0" }}
               />
             )}
 
             <button
               onClick={continuar} disabled={entrando}
-              className="w-full text-base rounded px-4 py-3.5 flex items-center justify-center gap-2 disabled:opacity-50 mb-4"
+              className="w-full text-sm sm:text-base rounded px-3 sm:px-4 py-3 sm:py-3.5 flex items-center justify-center gap-2 disabled:opacity-50 mb-4"
               style={{ background: "#2E4643", border: "1px solid #45605B", color: "#EDEAE0" }}
             >
               {entrando ? "Entrando…" : "Continuar com Google"}
@@ -223,7 +223,7 @@ function TelaLogin({ user, onConcluido }) {
           </div>
         </div>
       </div>
-      <div className="text-center text-xs py-5" style={{ color: "#5C6E69", borderTop: "1px solid #26332F" }}>
+      <div className="text-center text-xs py-5 px-4" style={{ color: "#5C6E69", borderTop: "1px solid #26332F" }}>
         © 2026 Jorge Lima Cardoso. Todos os direitos reservados. Plataforma didática desenvolvida para o CEDUP Hermann Hering — Curso Técnico em Contabilidade.
       </div>
     </div>
@@ -284,6 +284,9 @@ function TelaInformarMatricula({ perfil, onSair, onEncontrado }) {
 // ============================================================================
 function AlunoWorkspace({ registro, perfil, onSair }) {
   const [paginaAtiva, setPaginaAtiva] = useState("m1"); // id de módulo, "suporte" ou "manual"
+  const [menuAberto, setMenuAberto] = useState(false);
+
+  const irPara = (id) => { setPaginaAtiva(id); setMenuAberto(false); };
 
   const conteudo = () => {
     if (paginaAtiva === "dashboard") return <DashboardEmpresa empresaId={registro.empresaId} nomeEmpresa={registro.nomeEmpresa} />;
@@ -295,15 +298,30 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
   };
 
   return (
-    <div className="min-h-screen grid" style={{ gridTemplateColumns: "260px 1fr" }}>
-      <nav className="bg-white border-r border-paperline p-5 overflow-y-auto">
-        <div className="mb-4">
-          <div className="font-serif text-lg">{registro.nomeEmpresa}</div>
+    <div className="min-h-screen flex flex-col md:flex-row">
+      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-paperline bg-white sticky top-0 z-20">
+        <div>
+          <div className="font-serif text-base leading-tight">{registro.nomeEmpresa}</div>
           <div className="text-xs text-inksoft">{registro.turmaNome}</div>
+        </div>
+        <button onClick={() => setMenuAberto(true)} className="p-2 border border-paperline rounded-sm text-ink" aria-label="Abrir menu">
+          <Menu size={20} />
+        </button>
+      </div>
+
+      {menuAberto && <div onClick={() => setMenuAberto(false)} className="fixed inset-0 bg-black/40 z-30 md:hidden" />}
+
+      <nav className={`fixed md:static inset-y-0 left-0 z-40 w-[260px] shrink-0 bg-white border-r border-paperline p-5 overflow-y-auto transform transition-transform duration-200 md:translate-x-0 ${menuAberto ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="font-serif text-lg">{registro.nomeEmpresa}</div>
+            <div className="text-xs text-inksoft">{registro.turmaNome}</div>
+          </div>
+          <button onClick={() => setMenuAberto(false)} className="md:hidden p-1 text-inksoft" aria-label="Fechar menu"><X size={18} /></button>
         </div>
         <div className="space-y-0.5 mb-4">
           {MODULES.map((m) => (
-            <button key={m.id} onClick={() => setPaginaAtiva(m.id)}
+            <button key={m.id} onClick={() => irPara(m.id)}
               className={`w-full text-left flex items-start gap-2 px-2 py-2 text-[13px] leading-snug rounded-sm border-l-2 ${
                 paginaAtiva === m.id ? "border-ledger bg-ledgersoft font-semibold text-ledger" : "border-transparent text-ink hover:bg-ledgersoft"
               }`}>
@@ -313,25 +331,25 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
           ))}
         </div>
         <div className="space-y-1 mb-4 border-t border-paperline pt-3">
-          <button onClick={() => setPaginaAtiva("dashboard")}
+          <button onClick={() => irPara("dashboard")}
             className={`w-full text-left flex items-start gap-2 px-2 py-2 text-[13px] leading-snug rounded-sm border-l-2 ${
               paginaAtiva === "dashboard" ? "border-ledger bg-ledgersoft font-semibold text-ledger" : "border-transparent text-ink hover:bg-ledgersoft"
             }`}>
             <span className="font-mono text-[11px] text-debit shrink-0 pt-px">12</span>
             <span className="flex-1">Dashboard</span>
           </button>
-          <button onClick={() => setPaginaAtiva("suporte")}
+          <button onClick={() => irPara("suporte")}
             className={`w-full text-left flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm ${paginaAtiva === "suporte" ? "bg-ledgersoft text-ledger font-semibold" : "text-ink hover:bg-ledgersoft"}`}>
             <LifeBuoy size={14} /> Suporte
           </button>
-          <button onClick={() => setPaginaAtiva("manual")}
+          <button onClick={() => irPara("manual")}
             className={`w-full text-left flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm ${paginaAtiva === "manual" ? "bg-ledgersoft text-ledger font-semibold" : "text-ink hover:bg-ledgersoft"}`}>
             <BookOpen size={14} /> Manual do Aluno
           </button>
         </div>
         <button onClick={onSair} className="flex items-center gap-2 text-sm text-inksoft border-t border-paperline pt-4 w-full"><LogOut size={15} /> Sair</button>
       </nav>
-      <main className="p-8 max-w-3xl">
+      <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8 max-w-3xl">
         {conteudo()}
       </main>
     </div>
@@ -651,6 +669,8 @@ function PromoverParaMestre({ perfil }) {
 function ProfessorDashboard({ perfil, onSair }) {
   const [turmas] = useSharedList("turmas");
   const [pagina, setPagina] = useState("inicio");
+  const [menuAberto, setMenuAberto] = useState(false);
+  const irPara = (id) => { setPagina(id); setMenuAberto(false); };
   const [alunosDisponiveis, setAlunosDisponiveis] = useState([]);
   const [gerandoBackup, setGerandoBackup] = useState(false);
   const [nomeUltimoBackup, setNomeUltimoBackup] = useState("");
@@ -718,7 +738,7 @@ function ProfessorDashboard({ perfil, onSair }) {
           <button onClick={() => setPagina("relatorios")} className="text-sm rounded px-4 py-2" style={{ border: "1px solid #33443F", color: "#EDEAE0" }}>Ver relatórios</button>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
           <div className="rounded-md p-4" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
             <div className="text-[11px] uppercase" style={{ color: "#93A39F" }}>Turmas criadas</div>
             <div className="font-serif text-2xl" style={{ color: "#C79A56" }}>{turmas === null ? "…" : turmas.length}</div>
@@ -735,7 +755,7 @@ function ProfessorDashboard({ perfil, onSair }) {
 
         <div className="rounded-md p-5" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
           <strong className="flex items-center gap-2 mb-3" style={{ color: "#EDEAE0" }}><LayoutGrid size={16} style={{ color: "#C79A56" }} />Índice de Gestão</strong>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {ITENS_GESTAO.map((item, i) => (
               <button key={item.id} onClick={() => setPagina(item.id)}
                 className="flex items-center gap-3 text-sm rounded px-3 py-3"
@@ -755,42 +775,59 @@ function ProfessorDashboard({ perfil, onSair }) {
   };
 
   return (
-    <div style={{ background: "#14201F" }} className="min-h-screen grid" >
-      <div style={{ display: "grid", gridTemplateColumns: "250px 1fr" }}>
-        <nav className="p-4" style={{ background: "#182524", borderRight: "1px solid #26332F" }}>
-          <div className="flex items-center gap-2 px-3 py-2 mb-1">
+    <div style={{ background: "#14201F" }} className="min-h-screen flex flex-col md:flex-row">
+      <div className="md:hidden flex items-center justify-between px-4 py-3 sticky top-0 z-20" style={{ background: "#182524", borderBottom: "1px solid #26332F" }}>
+        <div className="flex items-center gap-2">
+          <GraduationCap size={18} style={{ color: "#C79A56" }} />
+          <div>
+            <div className="text-sm font-medium" style={{ color: "#EDEAE0" }}>Painel do Professor</div>
+            <div className="text-[11px]" style={{ color: "#6E7E7A" }}>{perfil.nome}</div>
+          </div>
+        </div>
+        <button onClick={() => setMenuAberto(true)} className="p-2 rounded-sm" style={{ color: "#EDEAE0" }} aria-label="Abrir menu">
+          <Menu size={20} />
+        </button>
+      </div>
+
+      {menuAberto && <div onClick={() => setMenuAberto(false)} className="fixed inset-0 bg-black/50 z-30 md:hidden" />}
+
+      <nav className={`fixed md:static inset-y-0 left-0 z-40 w-[260px] shrink-0 p-4 overflow-y-auto transform transition-transform duration-200 md:translate-x-0 ${menuAberto ? "translate-x-0" : "-translate-x-full"}`}
+        style={{ background: "#182524", borderRight: "1px solid #26332F" }}>
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2 px-3 py-2">
             <GraduationCap size={18} style={{ color: "#C79A56" }} />
             <div>
               <div className="text-sm font-medium" style={{ color: "#EDEAE0" }}>Painel do Professor</div>
               <div className="text-[11px]" style={{ color: "#6E7E7A" }}>{perfil.nome}</div>
             </div>
           </div>
-          <ItemMenu ativo={pagina === "inicio"} icon={LayoutGrid} label="Início" onClick={() => setPagina("inicio")} />
-          <ItemMenu ativo={pagina === "dashboard"} icon={FileBarChart} label="Dashboard" onClick={() => setPagina("dashboard")} />
+          <button onClick={() => setMenuAberto(false)} className="md:hidden p-1" style={{ color: "#93A39F" }} aria-label="Fechar menu"><X size={18} /></button>
+        </div>
+        <ItemMenu ativo={pagina === "inicio"} icon={LayoutGrid} label="Início" onClick={() => irPara("inicio")} />
+        <ItemMenu ativo={pagina === "dashboard"} icon={FileBarChart} label="Dashboard" onClick={() => irPara("dashboard")} />
 
-          <TituloGrupo>Gestão</TituloGrupo>
-          {ITENS_GESTAO.map((item) => (
-            <ItemMenu key={item.id} ativo={pagina === item.id} icon={item.icon} label={item.label} onClick={() => setPagina(item.id)} />
-          ))}
+        <TituloGrupo>Gestão</TituloGrupo>
+        {ITENS_GESTAO.map((item) => (
+          <ItemMenu key={item.id} ativo={pagina === item.id} icon={item.icon} label={item.label} onClick={() => irPara(item.id)} />
+        ))}
 
-          <TituloGrupo>Manuais</TituloGrupo>
-          {ITENS_MANUAIS.map((item) => (
-            <ItemMenu key={item.id} ativo={pagina === item.id} icon={item.icon} label={item.label} onClick={() => setPagina(item.id)} />
-          ))}
+        <TituloGrupo>Manuais</TituloGrupo>
+        {ITENS_MANUAIS.map((item) => (
+          <ItemMenu key={item.id} ativo={pagina === item.id} icon={item.icon} label={item.label} onClick={() => irPara(item.id)} />
+        ))}
 
-          <TituloGrupo>Outros</TituloGrupo>
-          {ITENS_OUTROS.map((item) => (
-            <ItemMenu key={item.id} ativo={pagina === item.id} icon={item.icon} label={item.label} onClick={() => setPagina(item.id)} />
-          ))}
+        <TituloGrupo>Outros</TituloGrupo>
+        {ITENS_OUTROS.map((item) => (
+          <ItemMenu key={item.id} ativo={pagina === item.id} icon={item.icon} label={item.label} onClick={() => irPara(item.id)} />
+        ))}
 
-          {perfil.papel !== "mestre" && <PromoverParaMestre perfil={perfil} />}
+        {perfil.papel !== "mestre" && <PromoverParaMestre perfil={perfil} />}
 
-          <button onClick={onSair} className="w-full flex items-center gap-2.5 text-sm px-3 py-2 mt-4 rounded-md" style={{ color: "#93A39F", borderTop: "1px solid #26332F" }}>
-            <LogOut size={15} /> Sair
-          </button>
-        </nav>
-        <main className="p-8 overflow-y-auto">{conteudo()}</main>
-      </div>
+        <button onClick={onSair} className="w-full flex items-center gap-2.5 text-sm px-3 py-2 mt-4 rounded-md" style={{ color: "#93A39F", borderTop: "1px solid #26332F" }}>
+          <LogOut size={15} /> Sair
+        </button>
+      </nav>
+      <main className="flex-1 p-5 md:p-8 overflow-y-auto min-w-0">{conteudo()}</main>
     </div>
   );
 }
