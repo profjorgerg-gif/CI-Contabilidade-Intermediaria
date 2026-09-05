@@ -22,7 +22,7 @@ import { gerarBackupZip } from "./lib/backup";
 // Componentes pequenos de UI (mesmo espírito visual do index.html da CI)
 // ============================================================================
 function Card({ children, className = "" }) {
-  return <div className={`bg-white border border-paperline rounded-sm p-6 mb-4 ${className}`}>{children}</div>;
+  return <div className={`bg-surface border border-paperline rounded-sm p-6 mb-4 ${className}`}>{children}</div>;
 }
 function Botao({ children, onClick, secondary, disabled, ...rest }) {
   return (
@@ -30,7 +30,7 @@ function Botao({ children, onClick, secondary, disabled, ...rest }) {
       onClick={onClick}
       disabled={disabled}
       className={`px-4 py-2 rounded-sm text-sm font-medium disabled:opacity-40 ${
-        secondary ? "border border-ledger text-ledger hover:bg-ledgersoft" : "bg-ledger text-white hover:bg-[#1F3E30]"
+        secondary ? "border border-ledger text-ledger hover:bg-ledgersoft" : "bg-ledger text-[#2C1E0E] hover:brightness-90"
       }`}
       {...rest}
     >
@@ -299,7 +299,7 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-paperline bg-white sticky top-0 z-20">
+      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-paperline bg-surface sticky top-0 z-20">
         <div>
           <div className="font-serif text-base leading-tight">{registro.nomeEmpresa}</div>
           <div className="text-xs text-inksoft">{registro.turmaNome}</div>
@@ -311,7 +311,7 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
 
       {menuAberto && <div onClick={() => setMenuAberto(false)} className="fixed inset-0 bg-black/40 z-30 md:hidden" />}
 
-      <nav className={`fixed md:static inset-y-0 left-0 z-40 w-[260px] shrink-0 bg-white border-r border-paperline p-5 overflow-y-auto transform transition-transform duration-200 md:translate-x-0 ${menuAberto ? "translate-x-0" : "-translate-x-full"}`}>
+      <nav className={`fixed md:static inset-y-0 left-0 z-40 w-[260px] shrink-0 bg-surface border-r border-paperline p-5 overflow-y-auto transform transition-transform duration-200 md:translate-x-0 ${menuAberto ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="font-serif text-lg">{registro.nomeEmpresa}</div>

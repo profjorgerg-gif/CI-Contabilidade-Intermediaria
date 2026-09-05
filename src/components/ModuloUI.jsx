@@ -2,7 +2,7 @@ import React from "react";
 import { useSimulador, fmt } from "../lib/simuladorEngine";
 
 export function Card({ children, className = "" }) {
-  return <div className={`bg-white border border-paperline rounded-sm p-6 mb-4 ${className}`}>{children}</div>;
+  return <div className={`bg-surface border border-paperline rounded-sm p-6 mb-4 ${className}`}>{children}</div>;
 }
 
 // Renderiza o HTML de teoria já escrito e aprovado (extraído verbatim do
@@ -18,7 +18,7 @@ export function Botao({ children, onClick, secondary, disabled, className = "" }
       onClick={onClick}
       disabled={disabled}
       className={`px-4 py-2 rounded-sm text-sm font-medium disabled:opacity-40 ${
-        secondary ? "border border-ledger text-ledger hover:bg-ledgersoft" : "bg-ledger text-white hover:bg-[#1F3E30]"
+        secondary ? "border border-ledger text-ledger hover:bg-ledgersoft" : "bg-ledger text-[#2C1E0E] hover:brightness-90"
       } ${className}`}
     >
       {children}

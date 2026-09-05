@@ -4,10 +4,10 @@ import { Card, Botao } from "./ModuloUI";
 
 const TIPOS = { desenvolvimento: "Suporte de Desenvolvimento", pedagogico: "Suporte Pedagógico" };
 export const STATUS = {
-  aberto: { label: "Aberto", cor: "#8A5A2B" },
-  em_analise: { label: "Em análise", cor: "#5B6B6C" },
-  em_desenvolvimento: { label: "Em desenvolvimento", cor: "#28513F" },
-  encerrado: { label: "Encerrado", cor: "#9C3B3B" },
+  aberto: { label: "Aberto", cor: "#C79A56" },
+  em_analise: { label: "Em análise", cor: "#93A39F" },
+  em_desenvolvimento: { label: "Em desenvolvimento", cor: "#7FBF9E" },
+  encerrado: { label: "Encerrado", cor: "#E08A8A" },
 };
 
 function gerarId() { return Math.random().toString(36).slice(2, 10); }

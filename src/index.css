@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 body {
-  background: #F7F5EF;
-  color: #1C2B2D;
+  background: #14201F;
+  color: #EDEAE0;
 }
 
 /* ============================================================
@@ -15,13 +15,13 @@ body {
    Tailwind não gera CSS para classes que não estão em JSX.
    ============================================================ */
 .teoria-conteudo .card {
-  background: #FFFFFF;
-  border: 1px solid #DCD6C6;
+  background: #1E302E;
+  border: 1px solid #33443F;
   border-radius: 2px;
   padding: 22px 24px;
   margin-bottom: 16px;
 }
-.teoria-conteudo strong { color: #1C2B2D; }
+.teoria-conteudo strong { color: #EDEAE0; }
 .teoria-conteudo table.mgmt {
   width: 100%;
   border-collapse: collapse;
@@ -32,39 +32,55 @@ body {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #5B6B6C;
-  border-bottom: 1px solid #DCD6C6;
+  color: #93A39F;
+  border-bottom: 1px solid #33443F;
   padding: 8px 10px;
 }
 .teoria-conteudo table.mgmt td {
   padding: 9px 10px;
-  border-bottom: 1px solid #EEEBE0;
+  border-bottom: 1px solid #26332F;
+  color: #D8DEDB;
 }
 .teoria-conteudo .profile-note {
   font-size: 12px;
-  color: #5B6B6C;
-  background: #E7EEE9;
-  border-left: 3px solid #28513F;
+  color: #93A39F;
+  background: #2E4643;
+  border-left: 3px solid #C79A56;
   padding: 8px 12px;
   margin-bottom: 22px;
 }
 .teoria-conteudo .empty-state {
-  border: 1px dashed #DCD6C6;
+  border: 1px dashed #33443F;
   border-radius: 2px;
   padding: 20px;
-  background: #FFFFFF;
-  color: #5B6B6C;
+  background: #1E302E;
+  color: #93A39F;
 }
 .teoria-conteudo .action {
   display: inline-block;
-  background: #28513F;
-  color: #fff;
+  background: #C79A56;
+  color: #2C1E0E;
   border-radius: 2px;
   padding: 9px 16px;
   font-size: 13.5px;
 }
-.teoria-conteudo p { margin: 0 0 10px; }
-.teoria-conteudo ol, .teoria-conteudo ul { padding-left: 18px; color: #5B6B6C; font-size: 13.5px; }
+.teoria-conteudo p { margin: 0 0 10px; color: #D8DEDB; }
+.teoria-conteudo ol, .teoria-conteudo ul { padding-left: 18px; color: #93A39F; font-size: 13.5px; }
+
+/* ============================================================
+   Campos de formulário — sem isso, ficariam com o fundo branco
+   padrão do navegador, destoando do resto da interface escura.
+   ============================================================ */
+input, select, textarea {
+  background: #1E302E;
+  color: #EDEAE0;
+}
+input::placeholder, textarea::placeholder {
+  color: #6E7E7A;
+}
+input[type="checkbox"] {
+  accent-color: #C79A56;
+}
 
 /* ============================================================
    Tabelas em telas estreitas (celular) — em vez de espremer as
