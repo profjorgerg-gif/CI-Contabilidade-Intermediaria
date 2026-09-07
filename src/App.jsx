@@ -16,7 +16,7 @@ import { ManualProfessor, ManualAluno } from "./components/Manuais";
 import { Relatorios } from "./components/Relatorios";
 import { Correcoes } from "./components/Correcoes";
 import { DashboardEmpresa, DashboardProfessor } from "./components/Dashboard";
-import { MinhasNotas, DemonstrativoProfessor } from "./components/Notas";
+import { DemonstrativoNotas, DemonstrativoProfessor } from "./components/Notas";
 import { gerarBackupZip } from "./lib/backup";
 
 // ============================================================================
@@ -295,7 +295,7 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
       return <Suporte perfil={perfil} contexto={{ empresaId: registro.empresaId, professorUid: registro.professorUid, professorNome: registro.professorNome }} />;
     }
     if (paginaAtiva === "manual") return <ManualAluno />;
-    if (paginaAtiva === "notas") return <MinhasNotas empresaId={registro.empresaId} />;
+    if (paginaAtiva === "notas") return <DemonstrativoNotas empresaId={registro.empresaId} />;
     return <ModuleContent moduleId={paginaAtiva} empresaId={registro.empresaId} />;
   };
 
