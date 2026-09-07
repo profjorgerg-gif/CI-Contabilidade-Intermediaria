@@ -404,7 +404,8 @@ export const MODULES = [
     "desc": "Base conceitual: princípios de contabilidade e Normas Brasileiras de Contabilidade que sustentam todos os demais módulos.",
     "tabs": [
       "Teoria",
-      "Exercícios"
+      "Exercícios",
+      "Recuperação Paralela"
     ]
   },
   {
@@ -414,7 +415,8 @@ export const MODULES = [
     "desc": "Diferença entre reconhecer eventos pelo regime de caixa e pelo regime de competência, e seus efeitos no resultado.",
     "tabs": [
       "Teoria",
-      "Exercícios"
+      "Exercícios",
+      "Recuperação Paralela"
     ]
   },
   {
@@ -425,7 +427,8 @@ export const MODULES = [
     "tabs": [
       "Estrutura Hierárquica",
       "Consulta ao Plano de Contas",
-      "Exercícios de Pareamento"
+      "Exercícios de Pareamento",
+      "Recuperação Paralela"
     ]
   },
   {

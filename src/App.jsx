@@ -16,6 +16,7 @@ import { ManualProfessor, ManualAluno } from "./components/Manuais";
 import { Relatorios } from "./components/Relatorios";
 import { Correcoes } from "./components/Correcoes";
 import { DashboardEmpresa, DashboardProfessor } from "./components/Dashboard";
+import { MinhasNotas, DemonstrativoProfessor } from "./components/Notas";
 import { gerarBackupZip } from "./lib/backup";
 
 // ============================================================================
@@ -294,6 +295,7 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
       return <Suporte perfil={perfil} contexto={{ empresaId: registro.empresaId, professorUid: registro.professorUid, professorNome: registro.professorNome }} />;
     }
     if (paginaAtiva === "manual") return <ManualAluno />;
+    if (paginaAtiva === "notas") return <MinhasNotas empresaId={registro.empresaId} />;
     return <ModuleContent moduleId={paginaAtiva} empresaId={registro.empresaId} />;
   };
 
@@ -319,6 +321,14 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
           </div>
           <button onClick={() => setMenuAberto(false)} className="md:hidden p-1 text-inksoft" aria-label="Fechar menu"><X size={18} /></button>
         </div>
+
+        <div className="mb-3 pb-3 border-b border-paperline">
+          <button onClick={() => irPara("manual")}
+            className={`w-full text-left flex items-center gap-2 px-2 py-2 text-sm rounded-sm ${paginaAtiva === "manual" ? "bg-ledgersoft text-ledger font-semibold" : "text-ink hover:bg-ledgersoft"}`}>
+            <BookOpen size={15} /> Manual do Aluno
+          </button>
+        </div>
+
         <div className="space-y-0.5 mb-4">
           {MODULES.map((m) => (
             <button key={m.id} onClick={() => irPara(m.id)}
@@ -338,13 +348,13 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
             <span className="font-mono text-[11px] text-debit shrink-0 pt-px">12</span>
             <span className="flex-1">Dashboard</span>
           </button>
+          <button onClick={() => irPara("notas")}
+            className={`w-full text-left flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm ${paginaAtiva === "notas" ? "bg-ledgersoft text-ledger font-semibold" : "text-ink hover:bg-ledgersoft"}`}>
+            <FileBarChart size={14} /> Minhas Notas
+          </button>
           <button onClick={() => irPara("suporte")}
             className={`w-full text-left flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm ${paginaAtiva === "suporte" ? "bg-ledgersoft text-ledger font-semibold" : "text-ink hover:bg-ledgersoft"}`}>
             <LifeBuoy size={14} /> Suporte
-          </button>
-          <button onClick={() => irPara("manual")}
-            className={`w-full text-left flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm ${paginaAtiva === "manual" ? "bg-ledgersoft text-ledger font-semibold" : "text-ink hover:bg-ledgersoft"}`}>
-            <BookOpen size={14} /> Manual do Aluno
           </button>
         </div>
         <button onClick={onSair} className="flex items-center gap-2 text-sm text-inksoft border-t border-paperline pt-4 w-full"><LogOut size={15} /> Sair</button>
@@ -596,6 +606,7 @@ const ITENS_GESTAO = [
   { id: "turmas", label: "Turmas", icon: Building2 },
   { id: "usuarios", label: "Usuários", icon: Users },
   { id: "relatorios", label: "Relatórios", icon: FileBarChart },
+  { id: "notas", label: "Demonstrativo de Notas", icon: FileBarChart },
   { id: "correcoes", label: "Correções", icon: FileBarChart },
   { id: "backup", label: "Backup", icon: Save },
   { id: "auditoria", label: "Auditoria", icon: History },
@@ -703,6 +714,7 @@ function ProfessorDashboard({ perfil, onSair }) {
     if (pagina === "dashboard") return <DashboardProfessor perfil={perfil} turmas={turmas} />;
     if (pagina === "usuarios") return <EmConstrucao titulo="Usuários" />;
     if (pagina === "relatorios") return <Relatorios perfil={perfil} />;
+    if (pagina === "notas") return <DemonstrativoProfessor perfil={perfil} />;
     if (pagina === "correcoes") return <Correcoes perfil={perfil} />;
     if (pagina === "backup") return (
       <div className="rounded-md p-6" style={{ background: "#1E302E", border: "1px solid #33443F" }}>

@@ -7,8 +7,8 @@ import { Card, Botao } from "./ModuloUI";
 // relacionar contas sintéticas com suas contas analíticas.
 // `blocos`: [{ titulo, pares: [{ sintetica, analitica }] }]
 // ============================================================================
-export function ExercicioPareamento({ empresaId, moduleId, blocos }) {
-  const chave = `${moduleId}_pareamento_${empresaId}`;
+export function ExercicioPareamento({ empresaId, moduleId, blocos, chaveSufixo = "pareamento" }) {
+  const chave = `${moduleId}_${chaveSufixo}_${empresaId}`;
   const [blocoAtivo, setBlocoAtivo] = React.useState(0);
   const [respostas, setRespostas] = React.useState({});
   const [notas, setNotas] = React.useState({});
@@ -126,8 +126,8 @@ export function ExercicioPareamento({ empresaId, moduleId, blocos }) {
 // nota de 0 a 10 por exercício (1 ponto por acerto), salvo por aluno.
 // `blocos`: [{ titulo, questoes: [{ pergunta, opcoes: [...], correta: idx }] }]
 // ============================================================================
-export function ExercicioMultiplaEscolha({ empresaId, moduleId, blocos }) {
-  const chave = `${moduleId}_exercicios_${empresaId}`;
+export function ExercicioMultiplaEscolha({ empresaId, moduleId, blocos, chaveSufixo = "exercicios" }) {
+  const chave = `${moduleId}_${chaveSufixo}_${empresaId}`;
   const [blocoAtivo, setBlocoAtivo] = useState(0);
   const [respostas, setRespostas] = useState({}); // { "b0_q0": idx }
   const [notas, setNotas] = useState({}); // { "b0": 7 }

@@ -20,6 +20,9 @@ import { ExercicioMultiplaEscolha, ExercicioPareamento } from "./Exercicios";
 import { EXERCICIOS_M1 } from "../data/exerciciosM1";
 import { EXERCICIOS_M2 } from "../data/exerciciosM2";
 import { EXERCICIOS_M3 } from "../data/exerciciosM3";
+import { RP_M1 } from "../data/exerciciosM1RP";
+import { RP_M2 } from "../data/exerciciosM2RP";
+import { RP_M3 } from "../data/exerciciosM3RP";
 
 const NOTA_EMPRESA = `Todos os eventos abaixo pertencem à mesma empresa fictícia — <strong>${EMPRESA.nome}</strong> — e usam o mesmo plano de contas. Monte cada lançamento e clique em <strong>Lançar</strong> quando débito e crédito estiverem balanceados.`;
 
@@ -29,11 +32,24 @@ const NOTA_EMPRESA = `Todos os eventos abaixo pertencem à mesma empresa fictíc
 function paineisDoModulo(moduleId, empresaId) {
   switch (moduleId) {
     case "m1":
-      return [<TeoriaCard html={TEORIA_M1_HTML} />, <ExercicioMultiplaEscolha empresaId={empresaId} moduleId="m1" blocos={EXERCICIOS_M1} />];
+      return [
+        <TeoriaCard html={TEORIA_M1_HTML} />,
+        <ExercicioMultiplaEscolha empresaId={empresaId} moduleId="m1" blocos={EXERCICIOS_M1} />,
+        <ExercicioMultiplaEscolha empresaId={empresaId} moduleId="m1" blocos={RP_M1} chaveSufixo="rp" />,
+      ];
     case "m2":
-      return [<TeoriaCard html={TEORIA_M2_HTML} />, <ExercicioMultiplaEscolha empresaId={empresaId} moduleId="m2" blocos={EXERCICIOS_M2} />];
+      return [
+        <TeoriaCard html={TEORIA_M2_HTML} />,
+        <ExercicioMultiplaEscolha empresaId={empresaId} moduleId="m2" blocos={EXERCICIOS_M2} />,
+        <ExercicioMultiplaEscolha empresaId={empresaId} moduleId="m2" blocos={RP_M2} chaveSufixo="rp" />,
+      ];
     case "m3":
-      return [<TeoriaCard html={ESTRUTURA_M3_HTML} />, <ConsultaPlanoContas />, <ExercicioPareamento empresaId={empresaId} moduleId="m3" blocos={EXERCICIOS_M3} />];
+      return [
+        <TeoriaCard html={ESTRUTURA_M3_HTML} />,
+        <ConsultaPlanoContas />,
+        <ExercicioPareamento empresaId={empresaId} moduleId="m3" blocos={EXERCICIOS_M3} />,
+        <ExercicioPareamento empresaId={empresaId} moduleId="m3" blocos={RP_M3} chaveSufixo="rp" />,
+      ];
     case "m4":
       return [
         <TeoriaCard html={TEORIA_M4_HTML} />,
