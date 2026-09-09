@@ -16,6 +16,7 @@ import { ManualProfessor, ManualAluno } from "./components/Manuais";
 import { Relatorios } from "./components/Relatorios";
 import { Correcoes } from "./components/Correcoes";
 import { Aprovacoes } from "./components/Aprovacoes";
+import { AtividadesRecebidas } from "./components/AtividadesRecebidas";
 import { DashboardEmpresa, DashboardProfessor } from "./components/Dashboard";
 import { DemonstrativoNotas, DemonstrativoProfessor } from "./components/Notas";
 import { gerarBackupZip } from "./lib/backup";
@@ -359,7 +360,7 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
     if (paginaAtiva === "notas") return <DemonstrativoNotas empresaId={registro.empresaId} />;
     return (
       <div>
-        {progresso && MODULOS_COM_SUBMISSAO.includes(paginaAtiva) && (
+        {progresso && MODULOS_COM_SUBMISSAO.includes(paginaAtiva) && paginaAtiva !== "m7" && (
           <BarraStatusModulo empresaId={registro.empresaId} moduleId={paginaAtiva} status={progresso[paginaAtiva]} onEnviado={recarregarProgresso} />
         )}
         <ModuleContent moduleId={paginaAtiva} empresaId={registro.empresaId} />
@@ -679,6 +680,7 @@ function EmConstrucao({ titulo }) {
 }
 
 const ITENS_GESTAO = [
+  { id: "atividades", label: "Atividades Recebidas", icon: ClipboardList },
   { id: "turmas", label: "Turmas", icon: Building2 },
   { id: "usuarios", label: "Usuários", icon: Users },
   { id: "aprovacoes", label: "Aprovação de Módulos", icon: ShieldCheck },
@@ -793,6 +795,7 @@ function ProfessorDashboard({ perfil, onSair }) {
     if (pagina === "relatorios") return <Relatorios perfil={perfil} />;
     if (pagina === "notas") return <DemonstrativoProfessor perfil={perfil} />;
     if (pagina === "aprovacoes") return <Aprovacoes perfil={perfil} />;
+    if (pagina === "atividades") return <AtividadesRecebidas perfil={perfil} />;
     if (pagina === "correcoes") return <Correcoes perfil={perfil} />;
     if (pagina === "backup") return (
       <div className="rounded-md p-6" style={{ background: "#1E302E", border: "1px solid #33443F" }}>

@@ -1,5 +1,6 @@
 import React from "react";
 import { useSimulador, fmt } from "../lib/simuladorEngine";
+import { enviarParaAnalise } from "../lib/progresso";
 
 export function Card({ children, className = "" }) {
   return <div className={`bg-surface border border-paperline rounded-sm p-6 mb-4 ${className}`}>{children}</div>;
@@ -215,6 +216,7 @@ export function EstudoDeCasoAvaliado({ empresaId, moduleId, html, extra }) {
     const novo = { ...dados, texto, status: "enviado", enviadoEm: Date.now() };
     setDados(novo);
     await window.storage.set(chave, JSON.stringify(novo), true);
+    await enviarParaAnalise(empresaId, moduleId);
   };
 
   if (!dados) return <p className="text-sm text-inksoft">Carregando…</p>;
@@ -245,6 +247,12 @@ export function EstudoDeCasoAvaliado({ empresaId, moduleId, html, extra }) {
       {dados.status === "corrigido" && (
         <div className="text-sm mt-3 bg-ledgersoft border-l-2 border-ledger px-3 py-2">
           <strong>Nota: {dados.nota}/10</strong>
+          {dados.feedback && <p className="mt-1 text-inksoft">{dados.feedback}</p>}
+        </div>
+      )}
+      {dados.status === "devolvido" && (
+        <div className="text-sm mt-3 border-l-2 border-alert px-3 py-2" style={{ background: "rgba(224,138,138,0.08)" }}>
+          <strong className="text-alert">O professor devolveu para ajustes.</strong>
           {dados.feedback && <p className="mt-1 text-inksoft">{dados.feedback}</p>}
         </div>
       )}
