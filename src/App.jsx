@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   LogOut, KeyRound, Building2, Users, GraduationCap, ShieldCheck,
   LayoutGrid, FileBarChart, Save, History, BookOpen, LifeBuoy, Megaphone, Video, ChevronRight,
-  ClipboardList, MessageSquare, TrendingUp, Menu, X,
+  ClipboardList, MessageSquare, TrendingUp, Menu, X, Lock,
 } from "lucide-react";
 import { auth, observarSessao, entrarComGoogle, sair, traduzErroAuth, CODIGO_MESTRE } from "./lib/firebaseAuth";
 import { definirUsuarioAtual, configPronta } from "./lib/firebaseApp";
@@ -15,9 +15,11 @@ import { Novidades } from "./components/Novidades";
 import { ManualProfessor, ManualAluno } from "./components/Manuais";
 import { Relatorios } from "./components/Relatorios";
 import { Correcoes } from "./components/Correcoes";
+import { Aprovacoes } from "./components/Aprovacoes";
 import { DashboardEmpresa, DashboardProfessor } from "./components/Dashboard";
 import { DemonstrativoNotas, DemonstrativoProfessor } from "./components/Notas";
 import { gerarBackupZip } from "./lib/backup";
+import { carregarProgresso, enviarParaAnalise, avaliarModulo, MODULOS_COM_SUBMISSAO, STATUS_LABEL, ORDEM_MODULOS } from "./lib/progresso";
 
 // ============================================================================
 // Componentes pequenos de UI (mesmo espírito visual do index.html da CI)
@@ -283,11 +285,70 @@ function TelaInformarMatricula({ perfil, onSair, onEncontrado }) {
 // Workspace do aluno — navegação pelos 11 módulos + conteúdo real,
 // portado do protótipo em HTML único já aprovado.
 // ============================================================================
+// ============================================================================
+// Barra de status do módulo — aparece acima do conteúdo, nos módulos com
+// atividade avaliativa/lançamentos. Mostra o status atual e o botão de
+// enviar para análise, ou o feedback do professor se foi devolvido.
+// ============================================================================
+function BarraStatusModulo({ empresaId, moduleId, status, onEnviado }) {
+  const [enviando, setEnviando] = useState(false);
+  const st = status?.status || "liberado";
+
+  const enviar = async () => {
+    setEnviando(true);
+    await enviarParaAnalise(empresaId, moduleId);
+    setEnviando(false);
+    onEnviado();
+  };
+
+  if (st === "aguardando_analise") {
+    return (
+      <div className="mb-4 px-4 py-3 rounded-sm border border-debit text-sm" style={{ background: "rgba(184,131,74,0.08)" }}>
+        <strong className="text-debit">Aguardando análise do professor.</strong> Você poderá ver o retorno aqui assim que o módulo for avaliado.
+      </div>
+    );
+  }
+  if (st === "devolvido") {
+    return (
+      <div className="mb-4 px-4 py-3 rounded-sm border border-alert text-sm" style={{ background: "rgba(224,138,138,0.08)" }}>
+        <strong className="text-alert">O professor devolveu este módulo para correção.</strong>
+        {status.feedback && <p className="mt-1">{status.feedback}</p>}
+        <div className="mt-2"><Botao onClick={enviar} disabled={enviando}>{enviando ? "Enviando…" : "Reenviar para análise"}</Botao></div>
+      </div>
+    );
+  }
+  if (st === "aprovado") {
+    return (
+      <div className="mb-4 px-4 py-2 rounded-sm border border-ledger text-sm text-ledger">
+        ✓ Módulo aprovado pelo professor.
+      </div>
+    );
+  }
+  // liberado
+  return (
+    <div className="mb-4 px-4 py-3 rounded-sm border border-paperline flex items-center justify-between flex-wrap gap-2">
+      <span className="text-sm text-inksoft">Quando concluir este módulo, envie para o professor analisar e liberar o próximo.</span>
+      <Botao onClick={enviar} disabled={enviando}>{enviando ? "Enviando…" : "Enviar para análise"}</Botao>
+    </div>
+  );
+}
+
 function AlunoWorkspace({ registro, perfil, onSair }) {
   const [paginaAtiva, setPaginaAtiva] = useState("m1"); // id de módulo, "suporte" ou "manual"
   const [menuAberto, setMenuAberto] = useState(false);
+  const [progresso, setProgresso] = useState(null);
 
-  const irPara = (id) => { setPaginaAtiva(id); setMenuAberto(false); };
+  const recarregarProgresso = async () => {
+    const p = await carregarProgresso(registro.empresaId);
+    setProgresso(p);
+  };
+  useEffect(() => { recarregarProgresso(); }, [registro.empresaId]);
+
+  const irPara = (id) => {
+    const modulo = MODULES.find((m) => m.id === id);
+    if (modulo && progresso && progresso[id]?.status === "bloqueado") return; // módulo travado, ignora o clique
+    setPaginaAtiva(id); setMenuAberto(false);
+  };
 
   const conteudo = () => {
     if (paginaAtiva === "dashboard") return <DashboardEmpresa empresaId={registro.empresaId} nomeEmpresa={registro.nomeEmpresa} />;
@@ -296,7 +357,14 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
     }
     if (paginaAtiva === "manual") return <ManualAluno />;
     if (paginaAtiva === "notas") return <DemonstrativoNotas empresaId={registro.empresaId} />;
-    return <ModuleContent moduleId={paginaAtiva} empresaId={registro.empresaId} />;
+    return (
+      <div>
+        {progresso && MODULOS_COM_SUBMISSAO.includes(paginaAtiva) && (
+          <BarraStatusModulo empresaId={registro.empresaId} moduleId={paginaAtiva} status={progresso[paginaAtiva]} onEnviado={recarregarProgresso} />
+        )}
+        <ModuleContent moduleId={paginaAtiva} empresaId={registro.empresaId} />
+      </div>
+    );
   };
 
   return (
@@ -330,15 +398,23 @@ function AlunoWorkspace({ registro, perfil, onSair }) {
         </div>
 
         <div className="space-y-0.5 mb-4">
-          {MODULES.map((m) => (
-            <button key={m.id} onClick={() => irPara(m.id)}
-              className={`w-full text-left flex items-start gap-2 px-2 py-2 text-[13px] leading-snug rounded-sm border-l-2 ${
-                paginaAtiva === m.id ? "border-ledger bg-ledgersoft font-semibold text-ledger" : "border-transparent text-ink hover:bg-ledgersoft"
-              }`}>
-              <span className="font-mono text-[11px] text-debit shrink-0 pt-px">{m.code}</span>
-              <span className="flex-1">{m.title}</span>
-            </button>
-          ))}
+          {MODULES.map((m) => {
+            const st = progresso?.[m.id]?.status;
+            const bloqueado = st === "bloqueado";
+            return (
+              <button key={m.id} onClick={() => irPara(m.id)} disabled={bloqueado}
+                className={`w-full text-left flex items-start gap-2 px-2 py-2 text-[13px] leading-snug rounded-sm border-l-2 ${
+                  bloqueado ? "opacity-40 cursor-not-allowed border-transparent text-ink"
+                  : paginaAtiva === m.id ? "border-ledger bg-ledgersoft font-semibold text-ledger" : "border-transparent text-ink hover:bg-ledgersoft"
+                }`}>
+                <span className="font-mono text-[11px] text-debit shrink-0 pt-px">{m.code}</span>
+                <span className="flex-1">{m.title}</span>
+                {bloqueado && <Lock size={12} className="shrink-0 mt-0.5 text-inksoft" />}
+                {st === "aguardando_analise" && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-debit mt-1.5" title="Aguardando análise" />}
+                {st === "devolvido" && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-alert mt-1.5" title="Devolvido para correção" />}
+              </button>
+            );
+          })}
         </div>
         <div className="space-y-1 mb-4 border-t border-paperline pt-3">
           <button onClick={() => irPara("dashboard")}
@@ -605,6 +681,7 @@ function EmConstrucao({ titulo }) {
 const ITENS_GESTAO = [
   { id: "turmas", label: "Turmas", icon: Building2 },
   { id: "usuarios", label: "Usuários", icon: Users },
+  { id: "aprovacoes", label: "Aprovação de Módulos", icon: ShieldCheck },
   { id: "relatorios", label: "Relatórios", icon: FileBarChart },
   { id: "notas", label: "Demonstrativo de Notas", icon: FileBarChart },
   { id: "correcoes", label: "Correções", icon: FileBarChart },
@@ -715,6 +792,7 @@ function ProfessorDashboard({ perfil, onSair }) {
     if (pagina === "usuarios") return <EmConstrucao titulo="Usuários" />;
     if (pagina === "relatorios") return <Relatorios perfil={perfil} />;
     if (pagina === "notas") return <DemonstrativoProfessor perfil={perfil} />;
+    if (pagina === "aprovacoes") return <Aprovacoes perfil={perfil} />;
     if (pagina === "correcoes") return <Correcoes perfil={perfil} />;
     if (pagina === "backup") return (
       <div className="rounded-md p-6" style={{ background: "#1E302E", border: "1px solid #33443F" }}>
